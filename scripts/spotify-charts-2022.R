@@ -13,6 +13,7 @@ global <- spotify %>% filter(region == "Global")
 global <- global %>% filter(trend == 'NEW_ENTRY') %>% filter(chart == 'top200')
 global = global[order(global[,'title'],-global[,'streams']),]
 global = global[!duplicated(global$title),]
+rm(spotify)
 # usa <- spotify %>% filter(region == "United States")
 # usa = usa[order(usa[,'title'],-usa[,'streams']),]
 # usa = usa[!duplicated(usa$title),]
@@ -22,10 +23,39 @@ global = global[!duplicated(global$title),]
 
 
 # Pre-processing ----------------------------------------------------------
+# remove redundant variables
+df <- global
+df <- df %>%
+  select(c(title, artist, streams)) %>% 
+  separate_rows(artist, sep = ", ")
+
+# create graph object
+# create empty graph object
+graph <- make_empty_graph(directed = FALSE)
+# add songs and artists as vertices to graph
+all_vertices <- unique(c(df$artist, df$title))
+graph <- add_vertices(graph, nv = length(all_vertices))
+V(graph)$name <- all_vertices
+# add edges between songs and artists
+for (i in 1:nrow(df)) {
+  title_vertex <- which(V(graph)$name == df$title[i])
+  artist_vertex <- which(V(graph)$name == df$artist[i])
+  graph <- add_edges(graph, c(artist_vertex, title_vertex))
+}
+# first plotting
+plot(graph,
+     vertex.label = NA,
+     vertex.size = 2)
+
+# create an adjacency matrix
 
 
+# create an affiliation matrix
+affiliation_matrix <- as_adjacency_matrix(graph, sparse = FALSE)
 
-
+# create an edge list
+affiliation_graph <- graph_from_adjacency_matrix(affiliation_matrix, mode = "undirected")
+edge_list <- get.edgelist(affiliation_graph, names = TRUE)
 
 
 # Residual code -----------------------------------------------------------
