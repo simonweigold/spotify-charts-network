@@ -36,7 +36,22 @@ incidence_matrix <- apply(incidence_matrix, c(1, 2),
 # create adjacency matrix
 adjacency_matrix <- incidence_matrix %*% t(incidence_matrix)
 adjacency_matrix <- ifelse(adjacency_matrix > 0, 1, 0)
-graph_artists <- graph_from_adjacency_matrix(adjacency_matrix, mode = "undirected")
+# create edge list
+edges <- which(adjacency_matrix == 1, arr.ind = TRUE)
+artist_names <- names(as.data.frame(adjacency_matrix))
+source_names <- artist_names[edges[, "row"]]
+target_names <- artist_names[edges[, "col"]]
+edge_list <- cbind(source_names, target_names)
+# create graph object
+graph_artists <- graph_from_edgelist(edge_list, directed = F)
+graph_artists <- simplify(graph_artists, remove.loops = TRUE)
+# first plotting
+plot(graph_artists,
+     vertex.label = NA,
+     vertex.size = 2)
+
+
+
 
 # from here on its getting dangerous
 graph <- graph_from_data_frame(df %>% select(c(title, artist)),
@@ -56,10 +71,7 @@ for (i in 1:nrow(df)) {
   graph <- add_edges(graph, c(artist_vertex, title_vertex))
 }
 
-# first plotting
-plot(graph_artists,
-     vertex.label = NA,
-     vertex.size = 2)
+
 
 # create an adjacency matrix
 
