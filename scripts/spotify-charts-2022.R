@@ -30,6 +30,10 @@ df <- df %>%
   separate_rows(artist, sep = ", ")
 # create incidence matrix
 incidence_matrix <- xtabs(~ artist + title, data = df) > 0
+incidence_matrix <- as.data.frame(incidence_matrix)
+incidence_matrix <- apply(incidence_matrix, c(1, 2),
+                          function(x) ifelse(x == FALSE, 0, ifelse(x == TRUE, 1, x)))
+
 
 
 # from here on its getting dangerous
