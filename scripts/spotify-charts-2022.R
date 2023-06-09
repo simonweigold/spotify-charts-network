@@ -28,7 +28,14 @@ df <- global
 df <- df %>%
   select(c(title, artist, streams)) %>% 
   separate_rows(artist, sep = ", ")
+# create incidence matrix
+incidence_matrix <- xtabs(~ artist + title, data = df) > 0
 
+
+# from here on its getting dangerous
+graph <- graph_from_data_frame(df %>% select(c(title, artist)),
+                               directed = F, vertices = NULL)
+artists_graph <- graph.incidence(incidence_matrix)
 # create graph object
 # create empty graph object
 graph <- make_empty_graph(directed = FALSE)
@@ -43,7 +50,7 @@ for (i in 1:nrow(df)) {
   graph <- add_edges(graph, c(artist_vertex, title_vertex))
 }
 # first plotting
-plot(graph,
+plot(artists_graph,
      vertex.label = NA,
      vertex.size = 2)
 
