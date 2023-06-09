@@ -45,14 +45,70 @@ edge_list <- cbind(source_names, target_names)
 # create graph object
 graph_artists <- graph_from_edgelist(edge_list, directed = F)
 graph_artists <- simplify(graph_artists, remove.loops = TRUE)
+# filter out nodes with 0 connections
+graph_artists_filtered <- delete_vertices(graph_artists,
+                                          which(degree(graph_artists) == 0))
+
+# exploratory data analysis -----------------------------------------------
 # first plotting
-plot(graph_artists,
+plot(graph_artists_filtered,
      vertex.label = NA,
      vertex.size = 2)
 
 
+# network analysis --------------------------------------------------------
+gsize(graph_artists) #size
+edge_density(graph_artists) #density
+count_components(graph_artists) #components
+diameter(graph_artists, directed = F) #diameter
+transitivity(graph_artists) #clustering
+# Degree
+degree <- degree(graph_artists)
+degree(graph_artists)[order(-degree(graph_artists))]
+# Closeness
+closeness <- closeness(graph_artists)
+closeness(graph_artists)[order(-closeness(graph_artists))]
+# Betweenness
+betweenness <- betweenness(graph_artists)
+betweenness(graph_artists)[order(-betweenness(graph_artists))]
+
+# attach calculations to network object
+V(graph_artists)$degree <- degree # Add degree as attribute
+V(graph_artists)$betweenness <- betweenness # Add degree as attribute
+V(graph_artists)$closeness <- closeness # Add degree as attribute
+
+# plot with vertex attributes degree and closeness
+# create a color palette with transparency values based on degree
+cols <- colorRampPalette(c("seagreen1", "seagreen4"))(100)
+alpha_vals <- seq(0.2, 1, length.out = 100)
+alpha_palette <- cbind(cols, alpha_vals)
+# plot
+plot(graph_artists,
+     vertex.label = NA,
+     vertex.size = log10(V(graph_artists)$degree),
+     vertex.color = "seagreen3", #alpha_palette[findInterval(V(graph_artists)$closeness*85, seq(0, 100, length.out = 101)),],
+     edge.color = "black",
+     layout = layout_with_fr(graph_artists, niter = 20000))
+
+# plot with modularity subgroups
+# detect communities using fast greedy algorithm
+communities <- fastgreedy.community(graph_artists)
+# calculate the modularity
+modularity(graph_artists, membership = as.vector(communities$membership))
+# Plot the communities
+plot(communities, graph_artists,
+     vertex.label = NA,
+     vertex.size = log10(V(graph_artists)$degree),
+     vertex.color = "seagreen3", #alpha_palette[findInterval(V(graph_artists)$closeness*85, seq(0, 100, length.out = 101)),],
+     edge.color = "black",
+     layout = layout_with_fr(graph_artists, niter = 20000))
 
 
+
+
+
+
+# danger zone -------------------------------------------------------------
 # from here on its getting dangerous
 graph <- graph_from_data_frame(df %>% select(c(title, artist)),
                                directed = F, vertices = NULL)
