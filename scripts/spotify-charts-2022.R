@@ -33,8 +33,10 @@ incidence_matrix <- xtabs(~ artist + title, data = df) > 0
 incidence_matrix <- as.data.frame(incidence_matrix)
 incidence_matrix <- apply(incidence_matrix, c(1, 2),
                           function(x) ifelse(x == FALSE, 0, ifelse(x == TRUE, 1, x)))
-
-
+# create adjacency matrix
+adjacency_matrix <- incidence_matrix %*% t(incidence_matrix)
+adjacency_matrix <- ifelse(adjacency_matrix > 0, 1, 0)
+graph_artists <- graph_from_adjacency_matrix(adjacency_matrix, mode = "undirected")
 
 # from here on its getting dangerous
 graph <- graph_from_data_frame(df %>% select(c(title, artist)),
@@ -53,8 +55,9 @@ for (i in 1:nrow(df)) {
   artist_vertex <- which(V(graph)$name == df$artist[i])
   graph <- add_edges(graph, c(artist_vertex, title_vertex))
 }
+
 # first plotting
-plot(artists_graph,
+plot(graph_artists,
      vertex.label = NA,
      vertex.size = 2)
 
