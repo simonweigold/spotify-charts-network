@@ -4,6 +4,7 @@ library(rio)
 library(tidyr)
 library(igraph)
 library(here)
+library(ggraph)
 
 
 # Data import -------------------------------------------------------------
@@ -83,12 +84,14 @@ cols <- colorRampPalette(c("seagreen1", "seagreen4"))(100)
 alpha_vals <- seq(0.2, 1, length.out = 100)
 alpha_palette <- cbind(cols, alpha_vals)
 # plot
+pdf("imgs/graph_artists.pdf")  # Specify the file name and path for the PDF file
 plot(graph_artists,
-     vertex.label = NA,
-     vertex.size = log10(V(graph_artists)$degree),
-     vertex.color = "seagreen3", #alpha_palette[findInterval(V(graph_artists)$closeness*85, seq(0, 100, length.out = 101)),],
-     edge.color = "black",
-     layout = layout_with_fr(graph_artists, niter = 20000))
+          vertex.label = NA,
+          vertex.size = log(V(graph_artists)$degree, 5),
+          vertex.color = "springgreen", #alpha_palette[findInterval(V(graph_artists)$closeness*85, seq(0, 100, length.out = 101)),],
+          edge.color = "black",
+          layout = layout_with_fr(graph_artists, niter = 20000))
+dev.off()
 
 # plot with modularity subgroups
 # detect communities using fast greedy algorithm
