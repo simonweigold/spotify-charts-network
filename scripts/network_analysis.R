@@ -111,8 +111,8 @@ plot(subgraph,
      vertex.label.color = "black",
      vertex.label.family = "serif",
      vertex.label.font = 1, # bold  font
-     vertex.size = (V(subgraph)$streams/sum(V(subgraph)$streams))*250, #log(V(graph_artists)$degree, 5),
-     vertex.color = alpha_palette[findInterval(V(subgraph)$closeness*85, seq(0, 100, length.out = 101)),],
+     vertex.size = sqrt((V(subgraph)$streams/sum(V(subgraph)$streams)))*50, #log(V(graph_artists)$degree, 5),
+     vertex.color = 'red',#alpha_palette[findInterval(V(subgraph)$closeness*85, seq(0, 100, length.out = 101)),],
      edge.color = "black",
      layout = layout_with_fr(subgraph, niter = 20000))
 
