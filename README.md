@@ -3,9 +3,10 @@ this is the repository for analysing the networks of artists who appear in Spoti
 
 ## Todos
 - [x] set up project infrastructure (GitHub repository + local machine)
-- [ ] Data preparation
-  - [ ] Data collection (Spotify API)
-  - [ ] Data preprocessing (transform network object)
+- [x] Data preparation
+  - [x] Data collection (Kaggle)
+  - [x] Data preprocessing
+  - [x] Transform network object
 - [ ] Analysis
   - [ ] ...
 - [ ] Write report
