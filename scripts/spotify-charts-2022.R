@@ -52,6 +52,12 @@ edge_list <- cbind(source_names, target_names)
 # create graph object
 graph_artists <- graph_from_edgelist(edge_list, directed = F)
 graph_artists <- simplify(graph_artists, remove.loops = TRUE)
+# add number of streams as vertex attribute
+order <- as.data.frame(names(as.list(V(graph_artists))))
+colnames(order)[1] <- "artist"
+streams <- inner_join(order, success2, by = "artist")
+streams <- streams$streams
+V(graph_artists)$streams <- streams
 # filter out nodes with 0 connections
 graph_artists_filtered <- delete_vertices(graph_artists,
                                           which(degree(graph_artists) == 0))
