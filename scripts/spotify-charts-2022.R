@@ -32,9 +32,6 @@ df <- df %>%
 # count chart appearances and total number of streams per artist
 success1 <- data.frame(table(df$artist))
 success2 <- aggregate(streams ~ artist, df, sum)
-# Rename the sum_streams column
-colnames(sum_streams)[2] <- "total_streams"
-success = success[order(-success[,'Freq']), ]
 # create incidence matrix
 incidence_matrix <- xtabs(~ artist + title, data = df) > 0
 incidence_matrix <- as.data.frame(incidence_matrix)
@@ -43,24 +40,37 @@ incidence_matrix <- apply(incidence_matrix, c(1, 2),
 # create adjacency matrix
 adjacency_matrix <- incidence_matrix %*% t(incidence_matrix)
 adjacency_matrix <- ifelse(adjacency_matrix > 0, 1, 0)
-# create edge list
-edges <- which(adjacency_matrix == 1, arr.ind = TRUE)
-artist_names <- names(as.data.frame(adjacency_matrix))
-source_names <- artist_names[edges[, "row"]]
-target_names <- artist_names[edges[, "col"]]
-edge_list <- cbind(source_names, target_names)
+# create edge list # this is cursed! :(
+#edges <- which(adjacency_matrix == 1, arr.ind = TRUE)
+#edges <- edges[edges[,1] != edges[,2], ] # remove connections with self
+#source_names <- artist_names[edges[, "row"]]
+#target_names <- artist_names[edges[, "col"]]
+#edge_list <- cbind(source_names, target_names)
+#edge_list <- unique(t(apply(edge_list, 1, sort)))
 # create graph object
-graph_artists <- graph_from_edgelist(edge_list, directed = F)
+#graph_artists <- graph_from_edgelist(edge_list, directed = F)
+graph_artists <- graph_from_adjacency_matrix(adjacency_matrix, mode = "undirected")
 graph_artists <- simplify(graph_artists, remove.loops = TRUE)
 # add number of streams as vertex attribute
 order <- as.data.frame(names(as.list(V(graph_artists))))
+#order <- V(graph_artists)$name
 colnames(order)[1] <- "artist"
 streams <- inner_join(order, success2, by = "artist")
 streams <- streams$streams
 V(graph_artists)$streams <- streams
-# filter out nodes with 0 connections
+# filter out nodes with 0 connections [cursed]
 graph_artists_filtered <- delete_vertices(graph_artists,
-                                          which(degree(graph_artists) == 0))
+                                          which(V(graph_artists)$streams < 
+                                                  100000000))
+graph_artists_filtered <- simplify(graph_artists_filtered)
+plot(graph_artists_filtered,
+     vertex.label = V(graph_artists_filtered)$name,
+     vertex.size = 2, #(V(graph_artists)$streams/sum(V(graph_artists)$streams))*35, #log(V(graph_artists)$degree, 5),
+     vertex.color = "springgreen", #alpha_palette[findInterval(V(graph_artists)$closeness*85, seq(0, 100, length.out = 101)),],
+     #edge.color = "black",
+     layout = layout_with_fr(graph_artists, niter = 20000))
+
+test <- as_edgelist(graph_artists)
 
 # exploratory data analysis -----------------------------------------------
 # first plotting
@@ -99,11 +109,38 @@ alpha_palette <- cbind(cols, alpha_vals)
 pdf("imgs/graph_artists.pdf")  # Specify the file name and path for the PDF file
 plot(graph_artists,
           vertex.label = NA,
-          vertex.size = log(V(graph_artists)$degree, 5),
+          vertex.size = (V(graph_artists)$streams/sum(V(graph_artists)$streams))*100, #log(V(graph_artists)$degree, 5),
           vertex.color = "springgreen", #alpha_palette[findInterval(V(graph_artists)$closeness*85, seq(0, 100, length.out = 101)),],
-          edge.color = "black",
+          #edge.color = "black",
           layout = layout_with_fr(graph_artists, niter = 20000))
 dev.off()
+
+# plot only biggest component
+components <- clusters(graph_artists)
+largest_component <- which.max(components$csize)
+graph_component <- induced_subgraph(graph_artists,
+                                    which(components$membership == largest_component))
+plot(graph_component,
+     vertex.label = NA, #V(graph_component)$name,
+     vertex.size = (V(graph_component)$streams/sum(V(graph_component)$streams))*100, #log(V(graph_artists)$degree, 5),
+     vertex.color = "springgreen", #alpha_palette[findInterval(V(graph_artists)$closeness*85, seq(0, 100, length.out = 101)),],
+     edge.color = "black",
+     layout = layout_with_fr(graph_artists, niter = 20000))
+
+# plot only top-XX
+sorted_vertices <- sort(V(graph_artists)$streams, decreasing = TRUE)
+top_vertices <- head(sorted_vertices, 50)
+subgraph <- induced_subgraph(graph_artists, which(V(graph_artists)$streams %in% top_vertices))
+plot(subgraph,
+     vertex.label = V(subgraph)$name,
+     vertex.label.cex = 1, # label font size
+     vertex.label.color = "black",
+     vertex.label.family = "serif",
+     vertex.label.font = 1, # bold  font
+     vertex.size = (V(subgraph)$streams/sum(V(subgraph)$streams))*250, #log(V(graph_artists)$degree, 5),
+     vertex.color = alpha_palette[findInterval(V(subgraph)$closeness*85, seq(0, 100, length.out = 101)),],
+     edge.color = "black",
+     layout = layout_with_fr(subgraph, niter = 20000))
 
 # plot with modularity subgroups
 # detect communities using fast greedy algorithm
