@@ -29,6 +29,12 @@ df <- global
 df <- df %>%
   select(c(title, artist, streams)) %>% 
   separate_rows(artist, sep = ", ")
+# count chart appearances and total number of streams per artist
+success1 <- data.frame(table(df$artist))
+success2 <- aggregate(streams ~ artist, df, sum)
+# Rename the sum_streams column
+colnames(sum_streams)[2] <- "total_streams"
+success = success[order(-success[,'Freq']), ]
 # create incidence matrix
 incidence_matrix <- xtabs(~ artist + title, data = df) > 0
 incidence_matrix <- as.data.frame(incidence_matrix)
