@@ -46,6 +46,32 @@ colnames(order)[1] <- "artist"
 streams <- inner_join(order, success2, by = "artist")
 streams <- streams$streams
 V(graph_artists)$streams <- streams
+
+# add genre as vertex attribute
+#write.csv(order, here::here("data", "artist_names.csv"), row.names = FALSE)
+# run Python script to access Spotify API and collect artists genres
+genres <- import(here::here("data", "artist_genre.csv"))
+# recode to create some more aggregated categories
+genres$genre2 <- genres$Genre
+genres$genre2 <- "other"
+genres$genre2 <- ifelse(grepl("pop", genres$Genre, ignore.case = TRUE),
+                        "pop", genres$genre2)
+genres$genre2 <- ifelse(grepl("hip hop", genres$Genre, ignore.case = TRUE),
+                        "hip hop", genres$genre2)
+genres$genre2 <- ifelse(grepl("trap", genres$Genre, ignore.case = TRUE),
+                        "trap", genres$genre2)
+genres$genre2 <- ifelse(grepl("rap", genres$Genre, ignore.case = TRUE),
+                        "rap", genres$genre2)
+genres$genre2 <- ifelse(grepl("house", genres$Genre, ignore.case = TRUE),
+                        "house", genres$genre2)
+genres$genre2 <- ifelse(grepl("rock", genres$Genre, ignore.case = TRUE),
+                        "rock", genres$genre2)
+genres$genre2 <- ifelse(grepl("Unknown", genres$Genre, ignore.case = TRUE),
+                        "Unknown", genres$genre2)
+# add genres to graph object
+V(graph_artists)$genre_untouched <- genres$Genre
+V(graph_artists)$genre_recoded <- genres$genre2
+
 #to test some relations# test <- as_edgelist(graph_artists)
 
 
