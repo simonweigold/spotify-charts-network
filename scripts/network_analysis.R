@@ -102,17 +102,20 @@ V(graph_artists)$closeness <- closeness # Add degree as attribute
 # plotting ----------------------------------------------------------------
 # plot with vertex attributes degree and closeness
 # create a color palette with transparency values based on degree
-cols <- colorRampPalette(c("seagreen1", "seagreen4"))(100)
-alpha_vals <- seq(0.2, 1, length.out = 100)
-alpha_palette <- cbind(cols, alpha_vals)
+#cols <- colorRampPalette(c("seagreen1", "seagreen4"))(100)
+vertex_pal <- c("#ABA9BF", "#C1666B", "#4DAA57", "#D5A021", "#094D92", "#FF57BB", "#439775")
+alpha_vals <- seq(0.2, 1, length.out = 7)
+alpha_palette <- cbind(vertex_pal, alpha_vals)
 # plot
 pdf("imgs/graph_artists.pdf")  # Specify the file name and path for the PDF file
 plot(graph_artists,
           vertex.label = NA,
-          vertex.size = (V(graph_artists)$streams/sum(V(graph_artists)$streams))*100, #log(V(graph_artists)$degree, 5),
-          vertex.color = "springgreen", #alpha_palette[findInterval(V(graph_artists)$closeness*85, seq(0, 100, length.out = 101)),],
+          vertex.size = (V(graph_artists)$streams/sum(V(graph_artists)$streams))*75, #log(V(graph_artists)$degree, 5),
+          vertex.color = vertex_pal[as.factor(V(graph_artists)$genre_recoded)], #alpha_palette[findInterval(V(graph_artists)$degree*85, seq(0, 100, length.out = 101)),],
           #edge.color = "black",
           layout = layout_with_fr(graph_artists, niter = 20000))
+legend("topright", legend = unique(V(graph_artists)$genre_recoded),
+       col = vertex_pal, pch = 16, pt.cex = 1.5, text.font = 6)
 dev.off()
 
 # plot only biggest component
@@ -131,6 +134,9 @@ plot(graph_component,
 sorted_vertices <- sort(V(graph_artists)$streams, decreasing = TRUE)
 top_vertices <- head(sorted_vertices, 50)
 subgraph <- induced_subgraph(graph_artists, which(V(graph_artists)$streams %in% top_vertices))
+
+vertex_pal <- c("#094D92", "#D5A021", "#4DAA57", "#C1666B", "#ABA9BF")
+
 plot(subgraph,
      vertex.label = V(subgraph)$name,
      vertex.label.cex = 1, # label font size
@@ -138,9 +144,11 @@ plot(subgraph,
      vertex.label.family = "serif",
      vertex.label.font = 1, # bold  font
      vertex.size = sqrt((V(subgraph)$streams/sum(V(subgraph)$streams)))*50, #log(V(graph_artists)$degree, 5),
-     vertex.color = 'red',#alpha_palette[findInterval(V(subgraph)$closeness*85, seq(0, 100, length.out = 101)),],
+     vertex.color = vertex_pal[as.factor(V(subgraph)$genre_recoded)],#'red',#alpha_palette[findInterval(V(subgraph)$closeness*85, seq(0, 100, length.out = 101)),],
      edge.color = "black",
      layout = layout_with_fr(subgraph, niter = 20000))
+legend("topright", legend = unique(V(subgraph)$genre_recoded),
+       col = vertex_pal, pch = 16, pt.cex = 2.5)
 
 # plot with modularity subgroups
 # detect communities using fast greedy algorithm
