@@ -5,6 +5,8 @@ library(tidyr)
 library(igraph)
 library(here)
 library(ggraph)
+library(visNetwork)
+library(htmlwidgets)
 
 
 # Data import -------------------------------------------------------------
@@ -98,6 +100,18 @@ V(graph_artists)$degree <- degree # Add degree as attribute
 V(graph_artists)$betweenness <- betweenness # Add degree as attribute
 V(graph_artists)$closeness <- closeness # Add degree as attribute
 
+# create metrics df to store metrics
+degree_df <- as.data.frame(degree)
+degree_df$artist <- rownames(degree_df)
+betweenness_df <- as.data.frame(betweenness)
+betweenness_df$artist <- rownames(betweenness_df)
+closeness_df <- as.data.frame(closeness)
+closeness_df$artist <- rownames(closeness_df)
+metrics <- inner_join(success2, degree_df, by = "artist")
+metrics <- inner_join(metrics, betweenness_df, by = "artist")
+metrics <- inner_join(metrics, closeness_df, by = "artist")
+colnames(genres)[1] <- "artist"
+metrics <- inner_join(metrics, genres, by = "artist")
 
 # plotting ----------------------------------------------------------------
 # plot with vertex attributes degree and closeness
@@ -107,7 +121,11 @@ vertex_pal <- c("#ABA9BF", "#C1666B", "#4DAA57", "#D5A021", "#094D92", "#FF57BB"
 alpha_vals <- seq(0.2, 1, length.out = 7)
 alpha_palette <- cbind(vertex_pal, alpha_vals)
 # plot
-pdf("imgs/graph_artists.pdf")  # Specify the file name and path for the PDF file
+# Set the filename and resolution
+filename <- "imgs/graph_artists.png"
+resolution <- 1500  # Adjust the resolution as desired (e.g., 300 for high resolution)
+png(filename, width = 8, height = 6, units = "in", res = resolution)
+#pdf("imgs/graph_artists.pdf")  # Specify the file name and path for the PDF file
 plot(graph_artists,
           vertex.label = NA,
           vertex.size = (V(graph_artists)$streams/sum(V(graph_artists)$streams))*75, #log(V(graph_artists)$degree, 5),
@@ -117,6 +135,12 @@ plot(graph_artists,
 legend("topright", legend = unique(V(graph_artists)$genre_recoded),
        col = vertex_pal, pch = 16, pt.cex = 1.5, text.font = 6)
 dev.off()
+png(filename, width = 8, height = 6, units = "in", res = resolution)
+plot(graph_artists,
+     vertex.label = NA,
+     vertex.size = (V(graph_artists)$streams/sum(V(graph_artists)$streams))*75)
+dev.off()
+saveWidget(visIgraph(graph_artists), file = "test.html")
 
 # plot only biggest component
 components <- clusters(graph_artists)
@@ -132,7 +156,7 @@ plot(graph_component,
 
 # plot only top-XX
 sorted_vertices <- sort(V(graph_artists)$streams, decreasing = TRUE)
-top_vertices <- head(sorted_vertices, 50)
+top_vertices <- head(sorted_vertices, 100)
 subgraph <- induced_subgraph(graph_artists, which(V(graph_artists)$streams %in% top_vertices))
 
 vertex_pal <- c("#094D92", "#D5A021", "#4DAA57", "#C1666B", "#ABA9BF")
@@ -149,6 +173,8 @@ plot(subgraph,
      layout = layout_with_fr(subgraph, niter = 20000))
 legend("topright", legend = unique(V(subgraph)$genre_recoded),
        col = vertex_pal, pch = 16, pt.cex = 2.5)
+
+saveWidget(visIgraph(subgraph), file = "top-xx.html")
 
 # plot with modularity subgroups
 # detect communities using fast greedy algorithm
