@@ -7,6 +7,7 @@ library(here)
 library(ggraph)
 library(visNetwork)
 library(htmlwidgets)
+library(corrplot)
 
 
 # Data import -------------------------------------------------------------
@@ -112,6 +113,28 @@ metrics <- inner_join(metrics, betweenness_df, by = "artist")
 metrics <- inner_join(metrics, closeness_df, by = "artist")
 colnames(genres)[1] <- "artist"
 metrics <- inner_join(metrics, genres, by = "artist")
+# correlation
+metrics %>%
+  select(c(streams, degree, betweenness, closeness)) %>% 
+  cor(use = "na.or.complete") %>% 
+  corrplot.mixed(upper = "circle",
+                 lower = "number",
+                 tl.pos = "lt",
+                 tl.col = "black",
+                 lower.col = "black",
+                 number.cex = 1)
+
+# avgs per genre
+metrics$genre3 <- metrics$genre2
+metrics$genre3 <- ifelse(grepl("rap", metrics$genre2, ignore.case = TRUE),
+                        "hip hop", metrics$genre3)
+avgs <- metrics %>% 
+  group_by(genre3) %>% 
+  summarise(avg_streams = mean(streams),
+            avg_degree = mean(degree),
+            avg_betweenness = mean(betweenness),
+            avg_closeness = mean(closeness, na.rm = T))
+
 
 # plotting ----------------------------------------------------------------
 # plot with vertex attributes degree and closeness
