@@ -145,16 +145,15 @@ alpha_vals <- seq(0.2, 1, length.out = 7)
 alpha_palette <- cbind(vertex_pal, alpha_vals)
 # plot
 # Set the filename and resolution
-filename <- "imgs/graph_artists.png"
-resolution <- 1500  # Adjust the resolution as desired (e.g., 300 for high resolution)
-png(filename, width = 8, height = 6, units = "in", res = resolution)
+png("imgs/graph_artists.png", width = 8, height = 6, units = "in", res = 3000)
 #pdf("imgs/graph_artists.pdf")  # Specify the file name and path for the PDF file
 plot(graph_artists,
-          vertex.label = NA,
-          vertex.size = (V(graph_artists)$streams/sum(V(graph_artists)$streams))*75, #log(V(graph_artists)$degree, 5),
-          vertex.color = vertex_pal[as.factor(V(graph_artists)$genre_recoded)], #alpha_palette[findInterval(V(graph_artists)$degree*85, seq(0, 100, length.out = 101)),],
-          #edge.color = "black",
-          layout = layout_with_fr(graph_artists, niter = 20000))
+     vertex.label = NA,
+     vertex.size = (V(graph_artists)$streams/sum(V(graph_artists)$streams))*75, #log(V(graph_artists)$degree, 5),
+     vertex.color = vertex_pal[as.factor(V(graph_artists)$genre_recoded)], #alpha_palette[findInterval(V(graph_artists)$degree*85, seq(0, 100, length.out = 101)),],
+     #edge.color = "black",
+     edge.alpha = 0.75,
+     layout = layout_with_fr(graph_artists, niter = 20000))
 legend("topright", legend = unique(V(graph_artists)$genre_recoded),
        col = vertex_pal, pch = 16, pt.cex = 1.5, text.font = 6)
 dev.off()
@@ -184,8 +183,9 @@ subgraph <- induced_subgraph(graph_artists, which(V(graph_artists)$streams %in% 
 
 vertex_pal <- c("#094D92", "#D5A021", "#4DAA57", "#C1666B", "#ABA9BF")
 
+png("imgs/top-150.png", width = 8, height = 6, units = "in", res = 3000) 
 plot(subgraph,
-     vertex.label = V(subgraph)$name,
+     vertex.label = NA, #V(subgraph)$name,
      vertex.label.cex = 1, # label font size
      vertex.label.color = "black",
      vertex.label.family = "serif",
@@ -194,21 +194,23 @@ plot(subgraph,
      vertex.color = vertex_pal[as.factor(V(subgraph)$genre_recoded)],#'red',#alpha_palette[findInterval(V(subgraph)$closeness*85, seq(0, 100, length.out = 101)),],
      edge.color = "black",
      layout = layout_with_fr(subgraph, niter = 20000))
-legend("topright", legend = unique(V(subgraph)$genre_recoded),
+legend("topright", legend = c("hip hop", "other", "pop", "rap", "rock"), #unique(V(subgraph)$genre_recoded),
        col = vertex_pal, pch = 16, pt.cex = 2.5)
+dev.off()
 
 saveWidget(visIgraph(subgraph), file = "top-xx.html")
 
 # plot with modularity subgroups
 # detect communities using fast greedy algorithm
-communities <- fastgreedy.community(graph_artists)
+communities <- fastgreedy.community(subgraph)
 # calculate the modularity
-modularity(graph_artists, membership = as.vector(communities$membership))
+modularity(subgraph, membership = as.vector(communities$membership))
 # Plot the communities
-plot(communities, graph_artists,
+png("imgs/top-100_modularity.png", width = 8, height = 6, units = "in", res = 3000) 
+plot(communities, subgraph,
      vertex.label = NA,
-     vertex.size = log10(V(graph_artists)$degree),
-     vertex.color = "seagreen3", #alpha_palette[findInterval(V(graph_artists)$closeness*85, seq(0, 100, length.out = 101)),],
+     vertex.size = sqrt((V(subgraph)$streams/sum(V(subgraph)$streams)))*50,
+     vertex.color = vertex_pal[as.factor(V(subgraph)$genre_recoded)], #alpha_palette[findInterval(V(graph_artists)$closeness*85, seq(0, 100, length.out = 101)),],
      edge.color = "black",
-     layout = layout_with_fr(graph_artists, niter = 20000))
-
+     layout = layout_with_fr(subgraph, niter = 20000))
+dev.off()
