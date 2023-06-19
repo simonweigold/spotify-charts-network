@@ -8,6 +8,7 @@ library(ggraph)
 library(visNetwork)
 library(htmlwidgets)
 library(corrplot)
+library(stargazer)
 
 
 # Data import -------------------------------------------------------------
@@ -123,6 +124,9 @@ metrics %>%
                  tl.col = "black",
                  lower.col = "black",
                  number.cex = 1)
+# multiple linear regression for 
+fit <- lm(streams ~ degree + betweenness + closeness, data = metrics)
+stargazer(fit, type = "text")
 
 # avgs per genre
 metrics$genre3 <- metrics$genre2
@@ -134,6 +138,10 @@ avgs <- metrics %>%
             avg_degree = mean(degree),
             avg_betweenness = mean(betweenness),
             avg_closeness = mean(closeness, na.rm = T))
+# anova
+anova <- aov(streams ~ genre3 + degree + betweenness + closeness, data = metrics)
+
+summary(anova)
 
 
 # plotting ----------------------------------------------------------------
