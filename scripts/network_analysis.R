@@ -140,7 +140,6 @@ avgs <- metrics %>%
             avg_closeness = mean(closeness, na.rm = T))
 # anova
 anova <- aov(streams ~ genre3 + degree + betweenness + closeness, data = metrics)
-
 summary(anova)
 
 
