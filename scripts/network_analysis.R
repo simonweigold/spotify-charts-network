@@ -12,35 +12,17 @@ count_components(graph_artists) #components
 diameter(graph_artists, directed = F) #diameter
 transitivity(graph_artists) #clustering
 # Degree
-degree <- degree(graph_artists)
 degree(graph_artists)[order(-degree(graph_artists))]
 # Closeness
-closeness <- closeness(graph_artists)
 closeness(graph_artists)[order(-closeness(graph_artists))]
 # Betweenness
-betweenness <- betweenness(graph_artists)
 betweenness(graph_artists)[order(-betweenness(graph_artists))]
+# Eigenvector
+eigen_centrality(graph_artists)$vector[order(-eigen_centrality(graph_artists)$vector)]
 
-# attach calculations to network object
-V(graph_artists)$degree <- degree # Add degree as attribute
-V(graph_artists)$betweenness <- betweenness # Add degree as attribute
-V(graph_artists)$closeness <- closeness # Add degree as attribute
-
-# create metrics df to store metrics
-degree_df <- as.data.frame(degree)
-degree_df$artist <- rownames(degree_df)
-betweenness_df <- as.data.frame(betweenness)
-betweenness_df$artist <- rownames(betweenness_df)
-closeness_df <- as.data.frame(closeness)
-closeness_df$artist <- rownames(closeness_df)
-metrics <- inner_join(success2, degree_df, by = "artist")
-metrics <- inner_join(metrics, betweenness_df, by = "artist")
-metrics <- inner_join(metrics, closeness_df, by = "artist")
-colnames(genres)[1] <- "artist"
-metrics <- inner_join(metrics, genres, by = "artist")
 # correlation
 metrics %>%
-  select(c(streams, degree, betweenness, closeness)) %>% 
+  select(c(streams, degree, betweenness, closeness, eigenvector)) %>% 
   cor(use = "na.or.complete") %>% 
   corrplot.mixed(upper = "circle",
                  lower = "number",
@@ -49,21 +31,11 @@ metrics %>%
                  lower.col = "black",
                  number.cex = 1)
 # multiple linear regression for 
-fit <- lm(streams ~ degree + betweenness + closeness, data = metrics)
+fit <- lm(streams ~ degree + betweenness + closeness + eigenvector, data = metrics)
 stargazer(fit, type = "text")
 
-# avgs per genre
-metrics$genre3 <- metrics$genre2
-metrics$genre3 <- ifelse(grepl("rap", metrics$genre2, ignore.case = TRUE),
-                        "hip hop", metrics$genre3)
-avgs <- metrics %>% 
-  group_by(genre3) %>% 
-  summarise(avg_streams = mean(streams),
-            avg_degree = mean(degree),
-            avg_betweenness = mean(betweenness),
-            avg_closeness = mean(closeness, na.rm = T))
 # anova
-anova <- aov(streams ~ genre3 + degree + betweenness + closeness, data = metrics)
+anova <- aov(streams ~ genre3 + degree + betweenness + closeness + eigenvector, data = metrics)
 summary(anova)
 
 
