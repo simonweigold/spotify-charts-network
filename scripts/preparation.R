@@ -77,3 +77,42 @@ V(graph_artists)$genre_untouched <- genres$Genre
 V(graph_artists)$genre_recoded <- genres$genre2
 
 #to test some relations# test <- as_edgelist(graph_artists)
+
+# add metrics
+degree <- degree(graph_artists) # degree centrality
+V(graph_artists)$degree <- degree # Add degree as attribute
+betweenness <- betweenness(graph_artists) # betweenness centrality
+V(graph_artists)$betweenness <- betweenness # Add degree as attribute
+closeness <- closeness(graph_artists) # closeness centrality
+V(graph_artists)$closeness <- closeness # Add closeness as attribute
+eigenvector <- eigen_centrality(graph_artists)$vector # eigenvector centrality
+V(graph_artists)$eigenvector <- eigenvector # Add eigenvector as attribute
+
+# create metrics df to store metrics
+degree_df <- as.data.frame(degree)
+degree_df$artist <- rownames(degree_df)
+betweenness_df <- as.data.frame(betweenness)
+betweenness_df$artist <- rownames(betweenness_df)
+closeness_df <- as.data.frame(closeness)
+closeness_df$artist <- rownames(closeness_df)
+eigenvector_df <- as.data.frame(eigenvector)
+eigenvector_df$artist <- rownames(eigenvector_df)
+metrics <- inner_join(success2, degree_df, by = "artist")
+metrics <- inner_join(metrics, betweenness_df, by = "artist")
+metrics <- inner_join(metrics, closeness_df, by = "artist")
+metrics <- inner_join(metrics, eigenvector_df, by = "artist")
+colnames(genres)[1] <- "artist"
+metrics <- inner_join(metrics, genres, by = "artist")
+
+# avgs per genre
+metrics$genre3 <- metrics$genre2
+metrics$genre3 <- ifelse(grepl("rap", metrics$genre2, ignore.case = TRUE),
+                         "hip hop", metrics$genre3)
+avgs <- metrics %>% 
+  group_by(genre3) %>% 
+  summarise(avg_streams = mean(streams),
+            avg_degree = mean(degree),
+            avg_betweenness = mean(betweenness),
+            avg_closeness = mean(closeness, na.rm = T),
+            avg_eigenvector = mean(eigenvector))
+
