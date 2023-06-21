@@ -11,6 +11,7 @@ library(corrplot)
 library(stargazer)
 library(visNetwork)
 library(networkD3)
+library(plotly)
 
 
 # Data import -------------------------------------------------------------
