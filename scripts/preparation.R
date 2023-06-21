@@ -10,6 +10,7 @@ library(htmlwidgets)
 library(corrplot)
 library(stargazer)
 library(visNetwork)
+library(networkD3)
 
 
 # Data import -------------------------------------------------------------
@@ -79,15 +80,24 @@ V(graph_artists)$genre_recoded <- genres$genre2
 
 #to test some relations# test <- as_edgelist(graph_artists)
 
+# create main component subgraph
+comps <- components(graph_artists)
+# Get the component membership vector
+membership <- comps$membership
+# Find the largest component
+largest_comp <- which(membership == which.max(comps$csize))
+# Extract the subgraph corresponding to the largest component
+largest_subgraph <- induced_subgraph(graph_artists, largest_comp)
+
 # add metrics
-degree <- degree(graph_artists) # degree centrality
-V(graph_artists)$degree <- degree # Add degree as attribute
-betweenness <- betweenness(graph_artists) # betweenness centrality
-V(graph_artists)$betweenness <- betweenness # Add degree as attribute
-closeness <- closeness(graph_artists) # closeness centrality
-V(graph_artists)$closeness <- closeness # Add closeness as attribute
-eigenvector <- eigen_centrality(graph_artists)$vector # eigenvector centrality
-V(graph_artists)$eigenvector <- eigenvector # Add eigenvector as attribute
+degree <- degree(largest_subgraph) # degree centrality
+V(largest_subgraph)$degree <- degree # Add degree as attribute
+betweenness <- betweenness(largest_subgraph) # betweenness centrality
+V(largest_subgraph)$betweenness <- betweenness # Add degree as attribute
+closeness <- closeness(largest_subgraph) # closeness centrality
+V(largest_subgraph)$closeness <- closeness # Add closeness as attribute
+eigenvector <- eigen_centrality(largest_subgraph)$vector # eigenvector centrality
+V(largest_subgraph)$eigenvector <- eigenvector # Add eigenvector as attribute
 
 # create metrics df to store metrics
 degree_df <- as.data.frame(degree)
