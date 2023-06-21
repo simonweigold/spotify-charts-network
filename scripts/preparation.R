@@ -115,11 +115,18 @@ metrics <- inner_join(metrics, closeness_df, by = "artist")
 metrics <- inner_join(metrics, eigenvector_df, by = "artist")
 colnames(genres)[1] <- "artist"
 metrics <- inner_join(metrics, genres, by = "artist")
-
-# avgs per genre
 metrics$genre3 <- metrics$genre2
 metrics$genre3 <- ifelse(grepl("rap", metrics$genre2, ignore.case = TRUE),
                          "hip hop", metrics$genre3)
+
+# standardize metrics
+metrics_stand <- metrics
+metrics_stand$degree <- scale(metrics$degree)
+metrics_stand$closeness <- scale(metrics$closeness)
+metrics_stand$betweenness <- scale(metrics$betweenness)
+metrics_stand$eigenvector <- scale(metrics$eigenvector)
+
+# avgs per genre
 avgs <- metrics %>% 
   group_by(genre3) %>% 
   summarise(avg_streams = mean(streams),
