@@ -12,13 +12,17 @@ count_components(graph_artists) #components
 diameter(graph_artists, directed = F) #diameter
 transitivity(graph_artists) #clustering
 # Degree
-degree(graph_artists)[order(-degree(graph_artists))]
+degree(graph_artists)[order(-degree(graph_artists))] %>% head(25)
+degree(largest_subgraph)[order(-degree(largest_subgraph))] %>% head(25)
 # Closeness
-closeness(graph_artists)[order(-closeness(graph_artists))]
+closeness(graph_artists)[order(-closeness(graph_artists))] %>% head(25)
+closeness(largest_subgraph)[order(-closeness(largest_subgraph))] %>% head(25)
 # Betweenness
-betweenness(graph_artists)[order(-betweenness(graph_artists))]
+betweenness(graph_artists)[order(-betweenness(graph_artists))] %>% head(25)
+betweenness(largest_subgraph)[order(-betweenness(largest_subgraph))] %>% head(25)
 # Eigenvector
-eigen_centrality(graph_artists)$vector[order(-eigen_centrality(graph_artists)$vector)]
+eigen_centrality(graph_artists)$vector[order(-eigen_centrality(graph_artists)$vector)] %>% head(25)
+eigen_centrality(largest_subgraph)$vector[order(-eigen_centrality(largest_subgraph)$vector)] %>% head(25)
 
 # correlation
 metrics %>%
@@ -30,6 +34,7 @@ metrics %>%
                  tl.col = "black",
                  lower.col = "black",
                  number.cex = 1)
+
 # multiple linear regression for 
 fit <- lm(streams ~ degree + betweenness + closeness + eigenvector, data = metrics)
 stargazer(fit, type = "text")
