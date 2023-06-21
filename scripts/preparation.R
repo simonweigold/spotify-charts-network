@@ -12,7 +12,14 @@ library(stargazer)
 library(visNetwork)
 library(networkD3)
 library(plotly)
-library(MASS)
+library(car)
+library(Hmisc)
+library(lmtest)
+library(sandwich)
+library(performance)
+library(factoextra)
+library(generics)
+library(glmnet)
 
 
 # Data import -------------------------------------------------------------
@@ -122,10 +129,19 @@ metrics$genre3 <- ifelse(grepl("rap", metrics$genre2, ignore.case = TRUE),
 
 # standardize metrics
 metrics_stand <- metrics
+metrics_stand$streams <- scale(metrics$streams)
 metrics_stand$degree <- scale(metrics$degree)
 metrics_stand$closeness <- scale(metrics$closeness)
 metrics_stand$betweenness <- scale(metrics$betweenness)
 metrics_stand$eigenvector <- scale(metrics$eigenvector)
+
+# min max metrics
+metrics_minmax <- metrics
+metrics_minmax$streams <- min_max_normalize(metrics$streams)
+metrics_minmax$degree <- min_max_normalize(metrics$degree)
+metrics_minmax$closeness <- min_max_normalize(metrics$closeness)
+metrics_minmax$betweenness <- min_max_normalize(metrics$betweenness)
+metrics_minmax$eigenvector <- min_max_normalize(metrics$eigenvector)
 
 # boxcox metrics
 source(here::here("scripts", "boxcox_function.R"))
@@ -143,7 +159,17 @@ metrics_log$streams <- log(metrics$streams)
 metrics_log$degree <- log(metrics$degree)
 metrics_log$closeness <- log(metrics$closeness)
 metrics_log$betweenness <- log(metrics$betweenness)
+metrics_log$betweenness[metrics_log$betweenness == -Inf] <- NA
 metrics_log$eigenvector <- log(metrics$eigenvector)
+
+# sqrt metrics
+metrics_sqrt = metrics
+metrics_sqrt$streams <- sqrt(metrics$streams)
+metrics_sqrt$degree <- sqrt(metrics$degree)
+metrics_sqrt$closeness <- sqrt(metrics$closeness)
+metrics_sqrt$betweenness <- sqrt(metrics$betweenness)
+metrics_sqrt$eigenvector <- sqrt(metrics$eigenvector)
+
 
 # avgs per genre
 avgs <- metrics %>% 
