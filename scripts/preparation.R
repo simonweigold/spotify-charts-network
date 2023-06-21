@@ -12,6 +12,7 @@ library(stargazer)
 library(visNetwork)
 library(networkD3)
 library(plotly)
+library(MASS)
 
 
 # Data import -------------------------------------------------------------
@@ -125,6 +126,24 @@ metrics_stand$degree <- scale(metrics$degree)
 metrics_stand$closeness <- scale(metrics$closeness)
 metrics_stand$betweenness <- scale(metrics$betweenness)
 metrics_stand$eigenvector <- scale(metrics$eigenvector)
+
+# boxcox metrics
+source(here::here("scripts", "boxcox_function.R"))
+metrics_boxcox = metrics
+boxcox_transform(metrics_boxcox, streams)
+lambda <- boxcox(metrics_boxcox$streams ~ 1)$x[which.max(boxcox(metrics_boxcox$streams ~ 1)$y)]
+metrics_boxcox$streams<- ((metrics_boxcox$streams^lambda) - 1)/lambda
+
+lambda <- boxcox(metrics_stand$streams)
+metrics_boxcox$streams <- ifelse(lambda == 0, log(metrics_stand$streams), ((metrics_stand$streams^lambda) - 1) / lambda)
+
+# log metrics
+metrics_log = metrics
+metrics_log$streams <- log(metrics$streams)
+metrics_log$degree <- log(metrics$degree)
+metrics_log$closeness <- log(metrics$closeness)
+metrics_log$betweenness <- log(metrics$betweenness)
+metrics_log$eigenvector <- log(metrics$eigenvector)
 
 # avgs per genre
 avgs <- metrics %>% 
