@@ -9,6 +9,7 @@ library(visNetwork)
 library(htmlwidgets)
 library(corrplot)
 library(stargazer)
+library(visNetwork)
 
 
 # Data import -------------------------------------------------------------
@@ -116,3 +117,8 @@ avgs <- metrics %>%
             avg_closeness = mean(closeness, na.rm = T),
             avg_eigenvector = mean(eigenvector))
 
+
+# remove unneccessary objects
+#rm(adjacency_matrix, betweenness_df, closeness_df, degree_df, df,
+   #eigenvector_df, global, incidence_matrix, order, success1, success2,
+   #betweenness, closeness, degree, eigenvector, streams)
