@@ -9,9 +9,9 @@ this is the repository for analysing the networks of artists who appear in Spoti
   - [x] Transform network object
 - [ ] Analysis
   - [ ] Exploratory data analysis
-  - [ ] Hypothesis 1
-    - [ ] Calculate centrality measures
-    - [ ] Perform regression (dependent variable = streams; independent variables = centrality measures)
+  - [x] Hypothesis 1
+    - [x] Calculate centrality measures
+    - [x] Perform regression (dependent variable = streams; independent variables = centrality measures)
   - [ ] Hypothesis 2
     - [ ] Create genre subgraphs
     - [ ] Calculate centrality measures
