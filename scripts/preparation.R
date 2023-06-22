@@ -1,4 +1,5 @@
 # Load packages -----------------------------------------------------------
+
 library(tidyverse)
 library(rio)
 library(tidyr)
@@ -22,7 +23,9 @@ library(generics)
 library(glmnet)
 
 
+
 # Data import -------------------------------------------------------------
+
 spotify <- import(here::here("data", "charts.csv"))
 #global charts
 global <- spotify %>% filter(region == "Global")
@@ -32,7 +35,9 @@ global = global[!duplicated(global$title),]
 rm(spotify)
 
 
+
 # Pre-processing ----------------------------------------------------------
+
 # remove redundant variables
 df <- global
 df <- df %>%
@@ -51,7 +56,9 @@ adjacency_matrix <- incidence_matrix %*% t(incidence_matrix)
 adjacency_matrix <- ifelse(adjacency_matrix > 0, 1, 0)
 
 
+
 # graph creation ----------------------------------------------------------
+
 #graph_artists <- graph_from_edgelist(edge_list, directed = F)
 graph_artists <- graph_from_adjacency_matrix(adjacency_matrix, mode = "undirected")
 graph_artists <- simplify(graph_artists, remove.loops = TRUE)
@@ -108,7 +115,10 @@ V(largest_subgraph)$closeness <- closeness # Add closeness as attribute
 eigenvector <- eigen_centrality(largest_subgraph)$vector # eigenvector centrality
 V(largest_subgraph)$eigenvector <- eigenvector # Add eigenvector as attribute
 
-# create metrics df to store metrics
+
+
+# Metrics DFs -------------------------------------------------------------
+
 degree_df <- as.data.frame(degree)
 degree_df$artist <- rownames(degree_df)
 betweenness_df <- as.data.frame(betweenness)
@@ -183,7 +193,17 @@ avgs <- metrics %>%
             avg_eigenvector = mean(eigenvector))
 
 
-# remove unneccessary objects
+
+# Genre subgraphs ---------------------------------------------------------
+
+
+
+
+
+
+
+# remove unnecessary objects ----------------------------------------------
+
 #rm(adjacency_matrix, betweenness_df, closeness_df, degree_df, df,
    #eigenvector_df, global, incidence_matrix, order, success1, success2,
    #betweenness, closeness, degree, eigenvector, streams)
