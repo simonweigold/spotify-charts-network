@@ -35,7 +35,7 @@ metrics %>%
                  lower.col = "black",
                  number.cex = 1)
 
-# multiple linear regression for 
+# multiple linear regression for h1
 fit <- lm(streams ~ degree + betweenness + closeness + eigenvector, data = metrics)
 stargazer(fit, type = "text")
 
