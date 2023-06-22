@@ -13,77 +13,80 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Exploratory Data Analysis
 ```{r}
-metrics %>%
-  select(c(streams, degree, betweenness, closeness, eigenvector)) %>% 
-  cor(use = "na.or.complete") %>% 
-  corrplot.mixed(upper = "circle",
+
+```
+```{r}
+# Create plot_data
+plot_data <- metrics_minmax %>% 
+  tidyr::pivot_longer(cols = -c(artist, Genre, genre2, genre3),
+                      names_to = "key", values_to = "value")
+# Visualise relation distribution between variables and quality
+plot_data %>% 
+  ggplot2::ggplot(aes(x = value)) + 
+  ggplot2::geom_density(alpha = 0.6) +
+  ggplot2::facet_wrap(~ key, scales = "free")
+# Visualise relation between variables and quality in boxplots
+plot_data %>%
+  ggplot2::ggplot(aes(y = value))+
+  ggplot2::geom_boxplot(alpha =0.6)+
+  ggplot2::facet_wrap(~key, scales ="free")+
+  ggplot2::theme(axis.title.x =element_blank(),
+                 axis.text.x =element_blank(),
+                 axis.ticks.x =element_blank())
+```
+
+Exploratory network analysis \n
+```{r}
+gsize(largest_subgraph) #size
+edge_density(largest_subgraph) #density
+count_components(largest_subgraph) #components
+diameter(largest_subgraph, directed = F) #diameter
+transitivity(largest_subgraph) #clustering
+```
+
+
+# Hypothesis 1
+## Centrality measures
+As a first step, the centrality measures are calculated.
+```{r}
+# see preparation
+```
+
+## Diagnostics of regression model
+```{r}
+regression <- lm(streams ~ degree + betweenness + closeness + eigenvector,
+                 data = metrics_minmax, na.action = na.exclude)
+```
+
+Diagnostics
+1. Linearity
+```{r}
+avPlots(regression)
+```
+2. No multicollinearity
+```{r}
+metrics_minmax %>%
+  dplyr::select(c(streams, degree, betweenness, closeness, eigenvector)) %>% 
+  stats::cor(use = "na.or.complete") %>% 
+  corrplot::corrplot.mixed(upper = "circle",
                  lower = "number",
                  tl.pos = "lt",
                  tl.col = "black",
                  lower.col = "black",
                  number.cex = 1)
-```
-```{r}
-# Create plot_data
-plot_data <- metrics_log %>% 
-  pivot_longer(cols = -c(artist, Genre, genre2, genre3), names_to = "key", values_to = "value")
-# Visualise relation distribution between variables and quality
-plot_data %>% 
-  ggplot(aes(x = value)) + 
-  geom_density(alpha = 0.6) +
-  facet_wrap(~ key, scales = "free")
-# Visualise relation between variables and quality in boxplots
-plot_data %>%
-  ggplot(aes(y = value))+
-  geom_boxplot(alpha =0.6)+
-  facet_wrap(~key, scales ="free")+
-  theme(axis.title.x =element_blank(),
-        axis.text.x =element_blank(),
-        axis.ticks.x =element_blank())
-```
 
-Exploratory network analysis \n
-```{r}
-gsize(graph_artists) #size
-edge_density(graph_artists) #density
-count_components(graph_artists) #components
-diameter(graph_artists, directed = F) #diameter
-transitivity(graph_artists) #clustering
-```
-
-
-# Hypothesis 1
-As a first step, the centrality measures are calculated.
-```{r}
-
-```
-
-Regression model
-```{r}
-regression <- lm(streams ~ degree + betweenness + closeness + eigenvector,
-                 data = metrics_log, na.action = na.exclude)
-```
-
-Diagnostics
-#1 Linearity
-```{r}
-avPlots(regression)
-```
-#2 No multicollinearity
-```{r}
-CT <- cbind(metrics_log$degree, metrics_log$betweenness, metrics_log$closeness,
-            metrics_log$eigenvector)
+CT <- cbind(metrics_minmax$degree, metrics_minmax$betweenness, metrics_minmax$closeness, metrics_minmax$eigenvector)
 rcorr(CT)
 
 vif(regression)
 ```
-#3 Homoskedasticity of the residuals
+3. Homoskedasticity of the residuals
 ```{r}
 plot(regression, 1)
 
 bptest(regression)
 ```
-#4 Normality of the residuals
+4. Normality of the residuals
 ```{r}
 hist(regression$residuals, breaks= 30, freq = F,
      main = "Distribution of residuals",
@@ -94,29 +97,70 @@ curve(dnorm(x, mean(regression$residuals), sd(regression$residuals)),
 plot(regression, 2)
 ```
 
-#5 No influential points
+5. No influential points
 ```{r}
 plot(regression, 4)
 ```
-Display regression
-```{r}
-#show regression model
-stargazer(regression, type = "text")
 
-#show regression model with robust standard errors
-stargazer(coeftest(regression, vcov=vcovHC(regression, type = c("HC3"))),
-          type = "text")
+## Penalized model
+Because there is a significant multicollinearity, which can be explained theoretically, a penalized linear regression model with an elastic net is applied.
+```{r}
+# Separate the independent variables and the dependent variable
+plm_x <- as.matrix(metrics_minmax[, c("degree", "betweenness", "closeness", "eigenvector")])
+plm_y <- metrics_minmax$streams
+
+# Perform penalized linear regression using glmnet
+penalized_regression <- glmnet(plm_x, plm_y)
+
+# Set up lambda values for tuning
+lambda_seq <- 10^seq(-2, 2, by = 0.5)
+
+# Perform cross-validation to tune the lambda parameter
+cv_result <- cv.glmnet(plm_x, plm_y, lambda = lambda_seq)
+
+# Find the optimal lambda value
+optimal_lambda <- cv_result$lambda.min
+
+# Fit the penalized regression model with the optimal lambda
+penalized_regression_optimal <- glmnet(plm_x, plm_y, lambda = optimal_lambda)
+
+# Predict the response variable using the optimal model
+plm_y_pred <- predict(penalized_regression_optimal, newx = plm_x)
+
+# Calculate the mean squared error (MSE)
+mse <- mean((plm_y - plm_y_pred)^2)
+
+# Calculate deviance explained
+null_deviance <- sum((plm_y - mean(plm_y))^2)
+deviance_explained <- 1 - (sum((plm_y - plm_y_pred)^2) / null_deviance)
 ```
-Bootstrapping
-```{r}
-#repeat regression modelling, but omit missing values for bootstrapping
-regression2 <- lm(impenv ~ edlvdch + lrscale + agea + gndr2 + rlgn+ residence +
-                   hinctnta, data = na.omit(ESS9_CH_MIN))
 
-#bootstrapping
-bootstrap_regression <- Boot(regression2, R=5000)
-summary(bootstrap_regression)
-confint(bootstrap_regression, level = 0.95)
+```{r}
+# Print the coefficients and R-squared of the optimal model
+print(coef(penalized_regression_optimal))
+print(paste("MSE:", mse))
+print(paste("Deviance Explained:", deviance_explained))
+```
+
+```{r}
+plot(penalized_regression, xvar = "lambda", label = TRUE)
+
+
+# Plot the predicted values and the original values
+plot(plm_y, type = "o", col = "blue", ylim = range(c(plm_y, plm_y_pred)), 
+     xlab = "Observation", ylab = "Value", main = "Predicted vs Original Values")
+lines(plm_y_pred, type = "o", col = "red")
+legend("topright", legend = c("Original", "Predicted"), 
+       col = c("blue", "red"), pch = c(1, 1))
+
+
+# Plot
+ggplot2::ggplot(data = as.data.frame(cbind(plm_y, plm_y_pred)),
+                mapping = aes(x = plm_y, y = s0, col = s0)) +
+  ggplot2::geom_point() +
+  ggplot2::geom_smooth(method = "lm", se = F, col = "red")
+#plot(metrics_minmax$streams, plm_y_pred)
+#abline(metrics_minmax$streams, plm_y_pred)
 ```
 
 
