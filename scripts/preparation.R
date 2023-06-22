@@ -96,6 +96,10 @@ V(graph_artists)$genre_recoded <- genres$genre2
 
 #to test some relations# test <- as_edgelist(graph_artists)
 
+
+
+# largest component subgraph ----------------------------------------------
+
 # create main component subgraph
 comps <- igraph::components(graph_artists)
 # Get the component membership vector
@@ -106,14 +110,94 @@ largest_comp <- which(membership == which.max(comps$csize))
 largest_subgraph <- induced_subgraph(graph_artists, largest_comp)
 
 # add metrics
-degree <- degree(largest_subgraph) # degree centrality
-V(largest_subgraph)$degree <- degree # Add degree as attribute
-betweenness <- betweenness(largest_subgraph) # betweenness centrality
-V(largest_subgraph)$betweenness <- betweenness # Add degree as attribute
-closeness <- closeness(largest_subgraph) # closeness centrality
-V(largest_subgraph)$closeness <- closeness # Add closeness as attribute
-eigenvector <- eigen_centrality(largest_subgraph)$vector # eigenvector centrality
-V(largest_subgraph)$eigenvector <- eigenvector # Add eigenvector as attribute
+V(largest_subgraph)$degree <- degree(largest_subgraph) # degree centrality
+V(largest_subgraph)$betweenness <- betweenness(largest_subgraph) # betweenness centrality
+V(largest_subgraph)$closeness <- closeness(largest_subgraph) # closeness centrality
+V(largest_subgraph)$eigenvector <- eigen_centrality(largest_subgraph)$vector # eigenvector centrality
+
+
+
+# components + centrality measures ----------------------------------------
+
+# create components
+components <- igraph::decompose.graph(graph_artists)
+
+# List to store separate network objects
+result_df <- data.frame(artist = character(), degree = numeric(),
+                        betweenness = numeric(), closeness = numeric(),
+                        eigenvector = numeric(), stringsAsFactors = FALSE)
+
+# Loop through each component
+for (i in seq_along(components)) {
+  component <- components[[i]]
+  
+  # Calculate degree centrality
+  degree <- degree(component)
+  betweenness <- betweenness(component)
+  closeness <- closeness(component)
+  eigenvector <- eigen_centrality(component)$vector
+  
+  # Create a data frame for the component's centrality results
+  component_df <- data.frame(artist = V(component)$name, degree = degree,
+                             betweenness = betweenness, closeness = closeness,
+                             eigenvector = eigenvector)
+  
+  # Append the component's data frame to the result data frame
+  result_df <- rbind(result_df, component_df)
+}
+
+# join streams and genres
+
+
+
+# Genre subgraphs ---------------------------------------------------------
+
+# Get the unique genre values
+unique_genres <- unique(V(graph_artists)$genre_recoded)
+
+# Create a list to store the subgraphs
+subgraphs <- list()
+
+# Split the graph by genre and create subgraphs
+for (genre in unique_genres) {
+  subgraph <- induced_subgraph(largest_subgraph, V(largest_subgraph)$genre_recoded == genre)
+  subgraphs[[genre]] <- subgraph
+}
+
+# get centrality measures of each subgraph + component
+
+for (i in 1:length(subgraphs)) {
+  # create components
+  components <- igraph::decompose.graph(graph_artists)
+  # List to store separate network objects
+  result_df <- data.frame(artist = character(), gs_degree = numeric(),
+                          gs_betweenness = numeric(), gs_closeness = numeric(),
+                          gs_eigenvector = numeric(), stringsAsFactors = FALSE)
+  # Loop through each component
+  for (i in seq_along(components)) {
+    component <- components[[i]]
+    
+    # Calculate degree centrality
+    degree <- degree(component)
+    betweenness <- betweenness(component)
+    closeness <- closeness(component)
+    eigenvector <- eigen_centrality(component)$vector
+    
+    # Create a data frame for the component's centrality results
+    component_df <- data.frame(artist = V(component)$name, degree = degree,
+                               betweenness = betweenness, closeness = closeness,
+                               eigenvector = eigenvector)
+    
+    # Append the component's data frame to the result data frame
+    result_df <- rbind(result_df, component_df)
+    
+    
+  current <- subgraphs[[unique_genres[i]]]
+  V(current)$name
+  V(current)$genre_recoded[1]
+  }
+}
+
 
 
 
@@ -191,14 +275,6 @@ avgs <- metrics %>%
             avg_betweenness = mean(betweenness),
             avg_closeness = mean(closeness, na.rm = T),
             avg_eigenvector = mean(eigenvector))
-
-
-
-# Genre subgraphs ---------------------------------------------------------
-
-
-
-
 
 
 
