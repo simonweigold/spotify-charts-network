@@ -1,4 +1,4 @@
-# PCA
+# Principal Component Analysis --------------------------------------------
 pca <- prcomp(metrics %>% select(streams, degree, betweenness, closeness, eigenvector),
               scale = TRUE)
 fviz_eig(pca)
@@ -23,6 +23,46 @@ variance_explained <- pca$sdev^2 / sum(pca$sdev^2)
 plot(cumsum(variance_explained), xlab = "Number of Components", ylab = "Cumulative Proportion of Variance Explained", type = "b")
 
 
+
+# Diagnostics -------------------------------------------------------------
+regression <- lm(streams ~ degree + betweenness + closeness + eigenvector,
+                 data = metrics_minmax, na.action = na.exclude)
+
+#1. Linearity
+avPlots(regression)
+
+#2. No multicollinearity
+metrics_minmax %>%
+  dplyr::select(c(streams, degree, betweenness, closeness, eigenvector)) %>% 
+  stats::cor(use = "na.or.complete") %>% 
+  corrplot::corrplot.mixed(upper = "circle",
+                           lower = "number",
+                           tl.pos = "lt",
+                           tl.col = "black",
+                           lower.col = "black",
+                           number.cex = 1)
+
+CT <- cbind(metrics_minmax$degree, metrics_minmax$betweenness, metrics_minmax$closeness, metrics_minmax$eigenvector)
+rcorr(CT)
+
+vif(regression)
+
+#3. Homoskedasticity of the residuals
+plot(regression, 1)
+
+bptest(regression)
+
+#4. Normality of the residuals
+hist(regression$residuals, breaks= 30, freq = F,
+     main = "Distribution of residuals",
+     xlab = "Residuals")
+curve(dnorm(x, mean(regression$residuals), sd(regression$residuals)), 
+      col = "red",
+      add = T)
+plot(regression, 2)
+
+#5. No influential points
+plot(regression, 4)
 
 
 # penalized linear models -----------------------------------------------
@@ -77,9 +117,13 @@ legend("topright", legend = c("Original", "Predicted"),
 
 
 # Plot
-predicted_values <- predict(penalized_regression_optimal, newx = plm_x)
-plot(metrics_minmax$streams, predicted_values)
-abline(metrics_minmax$streams, predicted_values)
+ggplot2::ggplot(data = as.data.frame(cbind(plm_y, plm_y_pred)),
+                mapping = aes(x = plm_y, y = s0, col = s0)) +
+  ggplot2::geom_point() +
+  ggplot2::geom_smooth(method = "lm", se = F, col = "red")
+#predicted_values <- predict(penalized_regression_optimal, newx = plm_x)
+#plot(metrics_minmax$streams, predicted_values)
+#abline(metrics_minmax$streams, predicted_values)
 
 # Calculate R-squared [= deviance_explained!]
 observed_values <- plm_y
