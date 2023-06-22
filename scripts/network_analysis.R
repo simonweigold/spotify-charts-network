@@ -122,3 +122,22 @@ plot(communities, subgraph,
      edge.color = "black",
      layout = layout_with_fr(subgraph, niter = 20000))
 dev.off()
+
+
+# plot genre subgraphs
+for (i in 1:length(subgraphs)) {
+  current <- subgraphs[[unique_genres[i]]]
+  plot(current,
+       main = V(current)$genre_recoded[1],
+       vertex.label = NA, #V(current)$name,
+       vertex.label.cex = 1, # label font size
+       vertex.label.color = "black",
+       vertex.label.family = "serif",
+       vertex.label.font = 1, # bold  font
+       vertex.size = sqrt((V(current)$streams/sum(V(current)$streams)))*50, #(V(largest_subgraph)$streams/sum(V(largest_subgraph)$streams))*100, #log(V(graph_artists)$degree, 5),
+       vertex.color = "seagreen2",
+       edge.color = "black",
+       edge.alpha = 0.75,
+       layout = layout_with_fr(current, niter = 20000))
+}
+
