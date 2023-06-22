@@ -90,7 +90,7 @@ V(graph_artists)$genre_recoded <- genres$genre2
 #to test some relations# test <- as_edgelist(graph_artists)
 
 # create main component subgraph
-comps <- components(graph_artists)
+comps <- igraph::components(graph_artists)
 # Get the component membership vector
 membership <- comps$membership
 # Find the largest component
@@ -135,32 +135,34 @@ metrics_stand$closeness <- scale(metrics$closeness)
 metrics_stand$betweenness <- scale(metrics$betweenness)
 metrics_stand$eigenvector <- scale(metrics$eigenvector)
 
-# min max metrics
-metrics_minmax <- metrics
-metrics_minmax$streams <- min_max_normalize(metrics$streams)
-metrics_minmax$degree <- min_max_normalize(metrics$degree)
-metrics_minmax$closeness <- min_max_normalize(metrics$closeness)
-metrics_minmax$betweenness <- min_max_normalize(metrics$betweenness)
-metrics_minmax$eigenvector <- min_max_normalize(metrics$eigenvector)
-
 # boxcox metrics
-source(here::here("scripts", "boxcox_function.R"))
-metrics_boxcox = metrics
-boxcox_transform(metrics_boxcox, streams)
-lambda <- boxcox(metrics_boxcox$streams ~ 1)$x[which.max(boxcox(metrics_boxcox$streams ~ 1)$y)]
-metrics_boxcox$streams<- ((metrics_boxcox$streams^lambda) - 1)/lambda
+#source(here::here("scripts", "boxcox_function.R"))
+#metrics_boxcox = metrics
+#boxcox_transform(metrics_boxcox, streams)
+#lambda <- boxcox(metrics_boxcox$streams ~ 1)$x[which.max(boxcox(metrics_boxcox$streams ~ 1)$y)]
+#metrics_boxcox$streams<- ((metrics_boxcox$streams^lambda) - 1)/lambda
 
-lambda <- boxcox(metrics_stand$streams)
-metrics_boxcox$streams <- ifelse(lambda == 0, log(metrics_stand$streams), ((metrics_stand$streams^lambda) - 1) / lambda)
+#lambda <- boxcox(metrics_stand$streams)
+#metrics_boxcox$streams <- ifelse(lambda == 0, log(metrics_stand$streams), ((metrics_stand$streams^lambda) - 1) / lambda)
 
 # log metrics
 metrics_log = metrics
 metrics_log$streams <- log(metrics$streams)
 metrics_log$degree <- log(metrics$degree)
 metrics_log$closeness <- log(metrics$closeness)
-metrics_log$betweenness <- log(metrics$betweenness)
+metrics_log$betweenness[metrics_log$betweenness == 0] <- 0.0001
+metrics_log$betweenness <- log(metrics_log$betweenness)
 metrics_log$betweenness[metrics_log$betweenness == -Inf] <- NA
 metrics_log$eigenvector <- log(metrics$eigenvector)
+
+# min max metrics
+source(here::here("scripts", "minmax_function.R"))
+metrics_minmax <- metrics_log
+metrics_minmax$streams <- min_max_normalize(metrics_log$streams)
+metrics_minmax$degree <- min_max_normalize(metrics_log$degree)
+metrics_minmax$closeness <- min_max_normalize(metrics_log$closeness)
+metrics_minmax$betweenness <- min_max_normalize(metrics_log$betweenness)
+metrics_minmax$eigenvector <- min_max_normalize(metrics_log$eigenvector)
 
 # sqrt metrics
 metrics_sqrt = metrics
