@@ -63,16 +63,19 @@ adjacency_matrix <- ifelse(adjacency_matrix > 0, 1, 0)
 graph_artists <- graph_from_adjacency_matrix(adjacency_matrix, mode = "undirected")
 graph_artists <- simplify(graph_artists, remove.loops = TRUE)
 # add number of streams as vertex attribute
-order <- as.data.frame(names(as.list(V(graph_artists))))
+order <- as.data.frame(names(as.list(V(graph_artists)))) # order is a df with all the artist names
 colnames(order)[1] <- "artist"
 streams <- inner_join(order, success2, by = "artist")
 streams <- streams$streams
 V(graph_artists)$streams <- streams
+# save streams as df
+streams_df <- as.data.frame(cbind(order, streams))
 
 # add genre as vertex attribute
 #write.csv(order, here::here("data", "artist_names.csv"), row.names = FALSE)
 # run Python script to access Spotify API and collect artists genres
 genres <- import(here::here("data", "artist_genre.csv"))
+colnames(genres)[1] <- "artist"
 # recode to create some more aggregated categories
 genres$genre2 <- genres$Genre
 genres$genre2 <- "other"
@@ -90,6 +93,9 @@ genres$genre2 <- ifelse(grepl("rock", genres$Genre, ignore.case = TRUE),
                         "rock", genres$genre2)
 genres$genre2 <- ifelse(grepl("Unknown", genres$Genre, ignore.case = TRUE),
                         "Unknown", genres$genre2)
+genres$genre3 <- genres$genre2
+genres$genre3 <- ifelse(grepl("rap", genres$genre2, ignore.case = TRUE),
+                         "hip hop", genres$genre3)
 # add genres to graph object
 V(graph_artists)$genre_untouched <- genres$Genre
 V(graph_artists)$genre_recoded <- genres$genre2
@@ -147,7 +153,8 @@ for (i in seq_along(components)) {
 }
 
 # join streams and genres
-
+metrics <- inner_join(result_df, streams_df, by = "artist")
+metrics <- inner_join(metrics, genres, by = "artist")
 
 
 # Genre subgraphs ---------------------------------------------------------
@@ -166,37 +173,37 @@ for (genre in unique_genres) {
 
 # get centrality measures of each subgraph + component
 
-for (i in 1:length(subgraphs)) {
-  # create components
-  components <- igraph::decompose.graph(graph_artists)
-  # List to store separate network objects
-  result_df <- data.frame(artist = character(), gs_degree = numeric(),
-                          gs_betweenness = numeric(), gs_closeness = numeric(),
-                          gs_eigenvector = numeric(), stringsAsFactors = FALSE)
-  # Loop through each component
-  for (i in seq_along(components)) {
-    component <- components[[i]]
-    
-    # Calculate degree centrality
-    degree <- degree(component)
-    betweenness <- betweenness(component)
-    closeness <- closeness(component)
-    eigenvector <- eigen_centrality(component)$vector
-    
-    # Create a data frame for the component's centrality results
-    component_df <- data.frame(artist = V(component)$name, degree = degree,
-                               betweenness = betweenness, closeness = closeness,
-                               eigenvector = eigenvector)
-    
-    # Append the component's data frame to the result data frame
-    result_df <- rbind(result_df, component_df)
-    
-    
-  current <- subgraphs[[unique_genres[i]]]
-  V(current)$name
-  V(current)$genre_recoded[1]
-  }
-}
+# for (i in 1:length(subgraphs)) {
+#   # create components
+#   components <- igraph::decompose.graph(graph_artists)
+#   # List to store separate network objects
+#   result_df <- data.frame(artist = character(), gs_degree = numeric(),
+#                           gs_betweenness = numeric(), gs_closeness = numeric(),
+#                           gs_eigenvector = numeric(), stringsAsFactors = FALSE)
+#   # Loop through each component
+#   for (i in seq_along(components)) {
+#     component <- components[[i]]
+#     
+#     # Calculate degree centrality
+#     degree <- degree(component)
+#     betweenness <- betweenness(component)
+#     closeness <- closeness(component)
+#     eigenvector <- eigen_centrality(component)$vector
+#     
+#     # Create a data frame for the component's centrality results
+#     component_df <- data.frame(artist = V(component)$name, degree = degree,
+#                                betweenness = betweenness, closeness = closeness,
+#                                eigenvector = eigenvector)
+#     
+#     # Append the component's data frame to the result data frame
+#     result_df <- rbind(result_df, component_df)
+#     
+#     
+#   current <- subgraphs[[unique_genres[i]]]
+#   V(current)$name
+#   V(current)$genre_recoded[1]
+#   }
+# }
 
 
 
@@ -215,11 +222,7 @@ metrics <- inner_join(success2, degree_df, by = "artist")
 metrics <- inner_join(metrics, betweenness_df, by = "artist")
 metrics <- inner_join(metrics, closeness_df, by = "artist")
 metrics <- inner_join(metrics, eigenvector_df, by = "artist")
-colnames(genres)[1] <- "artist"
 metrics <- inner_join(metrics, genres, by = "artist")
-metrics$genre3 <- metrics$genre2
-metrics$genre3 <- ifelse(grepl("rap", metrics$genre2, ignore.case = TRUE),
-                         "hip hop", metrics$genre3)
 
 # standardize metrics
 metrics_stand <- metrics
