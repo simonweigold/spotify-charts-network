@@ -242,10 +242,12 @@ metrics_log = metrics
 metrics_log$streams <- log(metrics$streams)
 metrics_log$degree <- log(metrics$degree)
 metrics_log$closeness <- log(metrics$closeness)
-metrics_log$betweenness[metrics_log$betweenness == 0] <- 0.0001
 metrics_log$betweenness <- log(metrics_log$betweenness)
-metrics_log$betweenness[metrics_log$betweenness == -Inf] <- NA
 metrics_log$eigenvector <- log(metrics$eigenvector)
+metrics_log$gs_degree <- log(metrics$gs_degree)
+metrics_log$gs_closeness <- log(metrics$gs_closeness)
+metrics_log$gs_betweenness <- log(metrics_log$gs_betweenness)
+metrics_log$gs_eigenvector <- log(metrics$gs_eigenvector)
 
 # min max metrics
 source(here::here("scripts", "minmax_function.R"))
@@ -255,6 +257,10 @@ metrics_minmax$degree <- min_max_normalize(metrics_log$degree)
 metrics_minmax$closeness <- min_max_normalize(metrics_log$closeness)
 metrics_minmax$betweenness <- min_max_normalize(metrics_log$betweenness)
 metrics_minmax$eigenvector <- min_max_normalize(metrics_log$eigenvector)
+metrics_minmax$gs_degree <- min_max_normalize(metrics_log$gs_degree)
+metrics_minmax$gs_closeness <- min_max_normalize(metrics_log$gs_closeness)
+metrics_minmax$gs_betweenness <- min_max_normalize(metrics_log$gs_betweenness)
+metrics_minmax$gs_eigenvector <- min_max_normalize(metrics_log$gs_eigenvector)
 
 # sqrt metrics
 metrics_sqrt = metrics
