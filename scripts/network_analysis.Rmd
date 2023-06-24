@@ -136,6 +136,15 @@ null_deviance <- sum((plm_y - mean(plm_y))^2)
 deviance_explained <- 1 - (sum((plm_y - plm_y_pred)^2) / null_deviance)
 ```
 
+"When a penalized regression model, such as ridge regression or lasso regression, returns a coefficient with no value (i.e., NA or zero), it typically indicates that the corresponding predictor variable has been effectively excluded from the model.
+
+In penalized regression, the regularization penalty is applied to the model to shrink the coefficients towards zero. This penalty encourages sparsity in the model, meaning that some coefficients may be set exactly to zero. This is particularly the case in lasso regression, where the L1 penalty promotes exact zeroing of coefficients, resulting in variable selection.
+
+When a coefficient has no value in the output, it means that the corresponding predictor variable does not contribute to the model's predictions or is deemed less important by the regularization process. In other words, the model has effectively removed or excluded that variable from the final model.
+
+It's important to note that the exclusion of a variable does not necessarily mean it is irrelevant or unimportant in the broader context. The penalized regression model is making a trade-off between simplicity and prediction accuracy, and the excluded variables may not significantly improve the model's performance compared to the remaining variables.
+
+If you believe that a particular variable is important and should be included in the model, you may consider adjusting the regularization parameter (lambda) or trying alternative regression techniques that do not enforce sparsity, such as ordinary least squares (OLS) regression" (ChatGPT, 24.06.2023).
 ```{r}
 # Print the coefficients and R-squared of the optimal model
 print(coef(penalized_regression_optimal))
@@ -175,3 +184,66 @@ cor(metrics$closeness, metrics$gs_closeness, use = "na.or.complete")
 cor(metrics$eigenvector, metrics$gs_eigenvector)
 ```
 
+```{r}
+# ANOVA streams
+#stats::oneway.test(AV ~ Gruppe, data = Daten)
+stats::oneway.test(streams ~ genre2, data = metrics)
+```
+```{r}
+# Separate the independent variables and the dependent variable
+gs_plm_x <- as.matrix(no_nas[, c("gs_degree", "gs_betweenness", "gs_eigenvector", "gs_closeness")])
+gs_plm_y <- no_nas$streams
+
+# Perform penalized linear regression using glmnet
+gs_penalized_regression <- glmnet(gs_plm_x, gs_plm_y)
+
+# Set up lambda values for tuning
+gs_lambda_seq <- 10^seq(-2, 2, by = 0.5)
+
+# Perform cross-validation to tune the lambda parameter
+gs_cv_result <- cv.glmnet(gs_plm_x, gs_plm_y, lambda = gs_lambda_seq)
+
+# Find the optimal lambda value
+gs_optimal_lambda <- gs_cv_result$lambda.min
+
+# Fit the penalized regression model with the optimal lambda
+gs_penalized_regression_optimal <- glmnet(gs_plm_x, gs_plm_y, lambda = gs_optimal_lambda)
+
+# Predict the response variable using the optimal model
+gs_plm_y_pred <- predict(gs_penalized_regression_optimal, newx = gs_plm_x)
+
+# Calculate the mean squared error (MSE)
+gs_mse <- mean((gs_plm_y - gs_plm_y_pred)^2)
+
+# Calculate deviance explained
+gs_null_deviance <- sum((gs_plm_y - mean(gs_plm_y))^2)
+gs_deviance_explained <- 1 - (sum((gs_plm_y - gs_plm_y_pred)^2) / gs_null_deviance)
+```
+
+```{r}
+# Print the coefficients and R-squared of the optimal model
+print(coef(gs_penalized_regression_optimal))
+print(paste("MSE:", gs_mse))
+print(paste("Deviance Explained:", gs_deviance_explained))
+```
+
+```{r}
+plot(gs_penalized_regression, xvar = "lambda", label = TRUE)
+
+
+# Plot the predicted values and the original values
+plot(gs_plm_y, type = "o", col = "blue", ylim = range(c(gs_plm_y, gs_plm_y_pred)), 
+     xlab = "Observation", ylab = "Value", main = "Predicted vs Original Values")
+lines(gs_plm_y_pred, type = "o", col = "red")
+legend("topright", legend = c("Original", "Predicted"), 
+       col = c("blue", "red"), pch = c(1, 1))
+
+
+# Plot
+ggplot2::ggplot(data = as.data.frame(cbind(gs_plm_y, gs_plm_y_pred)),
+                mapping = aes(x = gs_plm_y, y = s0, col = s0)) +
+  ggplot2::geom_point() +
+  ggplot2::geom_smooth(method = "lm", se = F, col = "red")
+#plot(metrics_minmax$streams, plm_y_pred)
+#abline(metrics_minmax$streams, plm_y_pred)
+```
