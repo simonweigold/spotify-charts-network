@@ -167,62 +167,57 @@ subgraphs <- list()
 
 # Split the graph by genre and create subgraphs
 for (genre in unique_genres) {
-  subgraph <- induced_subgraph(largest_subgraph, V(largest_subgraph)$genre_recoded == genre)
+  subgraph <- induced_subgraph(graph_artists, V(graph_artists)$genre_recoded == genre)
   subgraphs[[genre]] <- subgraph
 }
 
 # get centrality measures of each subgraph + component
+# empty gs_result_df to store all metrics
+gs_result_df <- data.frame(artist = character(), gs_degree = numeric(),
+                           gs_betweenness = numeric(), gs_closeness = numeric(),
+                           gs_eigenvector = numeric(), stringsAsFactors = FALSE)
+for (i in 1:length(subgraphs)) {
+  #current_subgraph <- subgraphs[[i]]
+  # create components
+  current_component <- igraph::decompose.graph(subgraphs[[i]])
 
-# for (i in 1:length(subgraphs)) {
-#   # create components
-#   components <- igraph::decompose.graph(graph_artists)
-#   # List to store separate network objects
-#   result_df <- data.frame(artist = character(), gs_degree = numeric(),
-#                           gs_betweenness = numeric(), gs_closeness = numeric(),
-#                           gs_eigenvector = numeric(), stringsAsFactors = FALSE)
-#   # Loop through each component
-#   for (i in seq_along(components)) {
-#     component <- components[[i]]
-#     
-#     # Calculate degree centrality
-#     degree <- degree(component)
-#     betweenness <- betweenness(component)
-#     closeness <- closeness(component)
-#     eigenvector <- eigen_centrality(component)$vector
-#     
-#     # Create a data frame for the component's centrality results
-#     component_df <- data.frame(artist = V(component)$name, degree = degree,
-#                                betweenness = betweenness, closeness = closeness,
-#                                eigenvector = eigenvector)
-#     
-#     # Append the component's data frame to the result data frame
-#     result_df <- rbind(result_df, component_df)
-#     
-#     
-#   current <- subgraphs[[unique_genres[i]]]
-#   V(current)$name
-#   V(current)$genre_recoded[1]
-#   }
-# }
+  # Loop through each component
+  for (j in seq_along(current_component)) {
+    component <- current_component[[j]]
+    #print(V(component)$genre_recoded)
 
+    # Calculate degree centrality
+    gs_degree <- degree(component)
+    gs_betweenness <- betweenness(component)
+    gs_closeness <- closeness(component)
+    gs_eigenvector <- eigen_centrality(component)$vector
+
+    # Create a data frame for the component's centrality results
+    gs_component_df <- data.frame(artist = V(component)$name, gs_degree = gs_degree,
+                                  gs_betweenness = gs_betweenness, gs_closeness = gs_closeness,
+                                  gs_eigenvector = gs_eigenvector)
+
+    # Append the component's data frame to the result data frame
+    gs_result_df <- rbind(gs_result_df, gs_component_df)
+
+
+  #current <- subgraphs[[unique_genres[i]]]
+  #V(current)$name
+  #V(current)$genre_recoded[1]
+  }
+}
+
+# join with previous df
+metrics <- inner_join(metrics, gs_result_df, by = "artist")
 
 
 
 # Metrics DFs -------------------------------------------------------------
-
-degree_df <- as.data.frame(degree)
-degree_df$artist <- rownames(degree_df)
-betweenness_df <- as.data.frame(betweenness)
-betweenness_df$artist <- rownames(betweenness_df)
-closeness_df <- as.data.frame(closeness)
-closeness_df$artist <- rownames(closeness_df)
-eigenvector_df <- as.data.frame(eigenvector)
-eigenvector_df$artist <- rownames(eigenvector_df)
-metrics <- inner_join(success2, degree_df, by = "artist")
-metrics <- inner_join(metrics, betweenness_df, by = "artist")
-metrics <- inner_join(metrics, closeness_df, by = "artist")
-metrics <- inner_join(metrics, eigenvector_df, by = "artist")
-metrics <- inner_join(metrics, genres, by = "artist")
+metrics$degree[metrics$degree == 0] <- 0.0001
+metrics$betweenness[metrics$betweenness == 0] <- 0.0001
+metrics$eigenvector[metrics$eigenvector == 0] <- 0.0001
+metrics$gs_degree[metrics$gs_degree == 0] <- 0.0001
+metrics$gs_betweenness[metrics$gs_betweenness == 0] <- 0.0001
 
 # standardize metrics
 metrics_stand <- metrics
