@@ -105,9 +105,10 @@ plot(regression, 4)
 ## Penalized model
 Because there is a significant multicollinearity, which can be explained theoretically, a penalized linear regression model with an elastic net is applied.
 ```{r}
+no_nas <- na.omit(metrics_minmax)
 # Separate the independent variables and the dependent variable
-plm_x <- as.matrix(metrics_minmax[, c("degree", "betweenness", "closeness", "eigenvector")])
-plm_y <- metrics_minmax$streams
+plm_x <- as.matrix(no_nas[, c("degree", "betweenness", "eigenvector", "closeness")])
+plm_y <- no_nas$streams
 
 # Perform penalized linear regression using glmnet
 penalized_regression <- glmnet(plm_x, plm_y)
@@ -167,4 +168,10 @@ ggplot2::ggplot(data = as.data.frame(cbind(plm_y, plm_y_pred)),
 
 # Hypothesis 2
 
+```{r}
+cor(metrics$degree, metrics$gs_degree)
+cor(metrics$betweenness, metrics$gs_betweenness)
+cor(metrics$closeness, metrics$gs_closeness, use = "na.or.complete")
+cor(metrics$eigenvector, metrics$gs_eigenvector)
+```
 
