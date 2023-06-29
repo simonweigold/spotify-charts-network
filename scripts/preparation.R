@@ -21,6 +21,7 @@ library(performance)
 library(factoextra)
 library(generics)
 library(glmnet)
+library(wordcloud2)
 
 
 
