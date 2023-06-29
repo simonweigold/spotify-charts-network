@@ -12,9 +12,30 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Exploratory Data Analysis
+Frequency distribution of streams
+```{r}
+global %>% 
+  ggplot(aes(x = streams)) +
+  geom_freqpoly(bins = length(streams), col = "coral")
+```
+Most occuring artists and wordcloud
+```{r}
+dplyr::count(df, artist, sort = T) %>% head(25)
+
+wordcloud2::wordcloud2(data = count(df, artist), size = 1, color = "random-dark")
+```
+
+Most occuring songs and wordcloud
+```{r}
+dplyr::count(df, title, sort = T) %>% head(25)
+
+wordcloud2::wordcloud2(data = count(df, title), size = 1, color = "random-dark")
+```
+
 ```{r}
 
 ```
+
 ```{r}
 # Create plot_data
 plot_data <- metrics_minmax %>% 
