@@ -33,7 +33,22 @@ wordcloud2::wordcloud2(data = count(df, title), size = 1, color = "random-dark")
 ```
 
 ```{r}
+dep_var = dep_var[order(-dep_var[,'Freq']),]
+dep_var %>% head(25)
+```
 
+```{r}
+dep_var = dep_var[order(-dep_var[,'streams']),]
+dep_var %>% head(25)
+```
+
+```{r}
+cor(dep_var$Freq, dep_var$streams)
+```
+
+```{r}
+dep_var = dep_var[order(-dep_var[,'output']),]
+dep_var %>% head(25)
 ```
 
 ```{r}
