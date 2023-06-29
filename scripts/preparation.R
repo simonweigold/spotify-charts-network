@@ -46,7 +46,11 @@ df <- df %>%
   separate_rows(artist, sep = ", ")
 # count chart appearances and total number of streams per artist
 success1 <- data.frame(table(df$artist))
+colnames(success1)[1] <- "artist"
 success2 <- aggregate(streams ~ artist, df, sum)
+# combine success variables
+dep_var <- inner_join(success1, success2, by = "artist")
+dep_var$output <- dep_var$streams/dep_var$Freq
 # create incidence matrix
 incidence_matrix <- xtabs(~ artist + title, data = df) > 0
 incidence_matrix <- as.data.frame(incidence_matrix)
@@ -66,8 +70,8 @@ graph_artists <- simplify(graph_artists, remove.loops = TRUE)
 # add number of streams as vertex attribute
 order <- as.data.frame(names(as.list(V(graph_artists)))) # order is a df with all the artist names
 colnames(order)[1] <- "artist"
-streams <- inner_join(order, success2, by = "artist")
-streams <- streams$streams
+streams <- inner_join(order, dep_var %>% select(c(artist, output)), by = "artist")
+streams <- streams$output
 V(graph_artists)$streams <- streams
 # save streams as df
 streams_df <- as.data.frame(cbind(order, streams))
