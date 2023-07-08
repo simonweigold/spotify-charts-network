@@ -31,7 +31,7 @@ library(jsonlite)
 spotify <- import(here::here("data", "charts.csv"))
 #global charts
 global <- spotify %>% filter(region == "Global")
-global <- global %>% filter(trend == 'NEW_ENTRY') %>% filter(chart == 'top200')
+global <- global %>% filter(chart == 'top200') #%>% filter(trend == 'NEW_ENTRY') 
 global = global[order(global[,'title'],-global[,'streams']),]
 global = global[!duplicated(global$title),]
 rm(spotify)
