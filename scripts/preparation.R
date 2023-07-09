@@ -107,9 +107,15 @@ genres$genre3 <- ifelse(grepl("rap", genres$genre2, ignore.case = TRUE),
 V(graph_artists)$genre_untouched <- genres$Genre
 V(graph_artists)$genre_recoded <- genres$genre2
 
-#to test some relations# test <- as_edgelist(graph_artists)
-
-
+# add popularity as vertex attribute
+# run Python script to access Spotify API and collect popularity scores
+popularity <- import(here::here("data", "artist_popularity.csv"))
+colnames(popularity)[1] <- "artist"
+colnames(popularity)[2] <- "popularity"
+popularity$popularity[popularity$popularity == "Unknown"] = NA
+popularity$popularity = as.numeric(popularity$popularity)
+# add popularity to graph object
+V(graph_artists)$popularity <- popularity$popularity
 
 # largest component subgraph ----------------------------------------------
 
@@ -162,6 +168,8 @@ for (i in seq_along(components)) {
 # join streams and genres
 metrics <- inner_join(result_df, streams_df, by = "artist")
 metrics <- inner_join(metrics, genres, by = "artist")
+metrics <- inner_join(metrics, popularity, by = "artist")
+metrics <- metrics %>% filter(!is.na(popularity))
 
 
 # Genre subgraphs ---------------------------------------------------------
@@ -215,6 +223,7 @@ for (i in 1:length(subgraphs)) {
 }
 
 # join with previous df
+
 metrics <- inner_join(metrics, gs_result_df, by = "artist")
 
 
@@ -229,6 +238,7 @@ metrics$gs_betweenness[metrics$gs_betweenness == 0] <- 0.0001
 # standardize metrics
 metrics_stand <- metrics
 metrics_stand$streams <- scale(metrics$streams)
+metrics_stand$popularity <- scale(metrics$popularity)
 metrics_stand$degree <- scale(metrics$degree)
 metrics_stand$closeness <- scale(metrics$closeness)
 metrics_stand$betweenness <- scale(metrics$betweenness)
@@ -247,6 +257,7 @@ metrics_stand$eigenvector <- scale(metrics$eigenvector)
 # log metrics
 metrics_log = metrics
 metrics_log$streams <- log(metrics$streams)
+metrics_log$popularity <- log(metrics$popularity)
 metrics_log$degree <- log(metrics$degree)
 metrics_log$closeness <- log(metrics$closeness)
 metrics_log$betweenness <- log(metrics_log$betweenness)
@@ -260,6 +271,7 @@ metrics_log$gs_eigenvector <- log(metrics$gs_eigenvector)
 source(here::here("scripts", "minmax_function.R"))
 metrics_minmax <- metrics_log
 metrics_minmax$streams <- min_max_normalize(metrics_log$streams)
+metrics_minmax$popularity <- min_max_normalize(metrics$popularity)
 metrics_minmax$degree <- min_max_normalize(metrics_log$degree)
 metrics_minmax$closeness <- min_max_normalize(metrics_log$closeness)
 metrics_minmax$betweenness <- min_max_normalize(metrics_log$betweenness)
@@ -272,6 +284,7 @@ metrics_minmax$gs_eigenvector <- min_max_normalize(metrics_log$gs_eigenvector)
 # sqrt metrics
 metrics_sqrt = metrics
 metrics_sqrt$streams <- sqrt(metrics$streams)
+metrics_sqrt$popularity <- sqrt(metrics$popularity)
 metrics_sqrt$degree <- sqrt(metrics$degree)
 metrics_sqrt$closeness <- sqrt(metrics$closeness)
 metrics_sqrt$betweenness <- sqrt(metrics$betweenness)
@@ -282,6 +295,7 @@ metrics_sqrt$eigenvector <- sqrt(metrics$eigenvector)
 avgs <- metrics %>% 
   group_by(genre3) %>% 
   summarise(avg_streams = mean(streams),
+            avg_popularity = mean(popularity, na.rm = T),
             avg_degree = mean(degree),
             avg_betweenness = mean(betweenness),
             avg_closeness = mean(closeness, na.rm = T),
