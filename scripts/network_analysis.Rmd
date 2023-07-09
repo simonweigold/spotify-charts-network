@@ -14,22 +14,56 @@ knitr::opts_chunk$set(echo = TRUE)
 # Exploratory Data Analysis
 Frequency distribution of streams
 ```{r}
-global %>% 
+freq_streams <- global %>% 
   ggplot(aes(x = streams)) +
-  geom_freqpoly(bins = length(streams), col = "coral")
+  geom_freqpoly(bins = length(streams), col = "royalblue4") +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(labels = scales::comma) +
+  theme(axis.text = element_text(color="black", size=12, family="serif"),
+        axis.text.x = element_text(color="black", size=12, family="serif"),
+        axis.ticks.x = element_line(),
+        axis.ticks.y = element_line(),
+        axis.line.x = element_line(size=0.5, color="grey"),
+        axis.line.y = element_line(size=0.5, color="grey"),
+        panel.grid = element_line(color = "honeydew2",
+                                  size = 0.5,
+                                  linetype = 1),
+        panel.background = element_rect(fill="white"),
+        plot.margin = margin(10,10,10,10),
+        plot.title = element_text(color="black", size=16, family="serif"),
+        plot.subtitle = element_text(color="grey26", size=14, family="serif"),
+        legend.text = element_text(color="black", size=12, family="serif"),
+        text = element_text(color="black", size=14, family="serif")
+  )
+
+ggsave(freq_streams,
+       filename = "freq_streams.png",
+       path = here::here("imgs"),
+       device = "png",
+       width = 6, height = 4, units = "in",
+       dpi = 600
+       )
+
+freq_streams
 ```
 Most occuring artists and wordcloud
 ```{r}
 dplyr::count(df, artist, sort = T) %>% head(25)
 
-wordcloud2::wordcloud2(data = count(df, artist), size = 1, color = "random-dark")
+wordcloud_artists <- wordcloud2::wordcloud2(data = count(df, artist), size = 0.35, color = "random-dark")
+wordcloud_artists
+#saveWidget(wordcloud_artists, here::here("imgs", "wordcloud-artists.html"), selfcontained = F)
+#webshot(here::here("imgs", "wordcloud-artists.html"), here::here("imgs", "wordcloud-artists.png"), delay = 20, vwidth = 960, vheight = 960)
 ```
 
 Most occuring songs and wordcloud
 ```{r}
 dplyr::count(df, title, sort = T) %>% head(25)
 
-wordcloud2::wordcloud2(data = count(df, title), size = 1, color = "random-dark")
+wordcloud_songs <- wordcloud2::wordcloud2(data = count(df, title), size = 1, color = "random-dark")
+wordcloud_songs
+#saveWidget(wordcloud_songs, here::here("imgs", "wordcloud-songs.html"), selfcontained = F)
+#webshot(here::here("imgs", "wordcloud-songs.html"), here::here("imgs", "wordcloud-songs.png"), delay =5, vwidth = 480, vheight=480)
 ```
 
 ```{r}
