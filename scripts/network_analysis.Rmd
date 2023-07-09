@@ -46,6 +46,42 @@ ggsave(freq_streams,
 
 freq_streams
 ```
+
+Frequency Distribution of Popularity
+```{r}
+freq_popularity <- metrics %>% 
+  ggplot(aes(x = popularity)) +
+  geom_freqpoly(binwidth = length(popularity), col = "royalblue4", na.rm = T) +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(labels = scales::comma) +
+  theme(axis.text = element_text(color="black", size=12, family="serif"),
+        axis.text.x = element_text(color="black", size=12, family="serif"),
+        axis.ticks.x = element_line(),
+        axis.ticks.y = element_line(),
+        axis.line.x = element_line(size=0.5, color="grey"),
+        axis.line.y = element_line(size=0.5, color="grey"),
+        panel.grid = element_line(color = "honeydew2",
+                                  size = 0.5,
+                                  linetype = 1),
+        panel.background = element_rect(fill="white"),
+        plot.margin = margin(10,10,10,10),
+        plot.title = element_text(color="black", size=16, family="serif"),
+        plot.subtitle = element_text(color="grey26", size=14, family="serif"),
+        legend.text = element_text(color="black", size=12, family="serif"),
+        text = element_text(color="black", size=14, family="serif")
+  )
+
+ggsave(freq_popularity,
+       filename = "freq_popularity.png",
+       path = here::here("imgs"),
+       device = "png",
+       width = 6, height = 4, units = "in",
+       dpi = 600
+       )
+
+freq_popularity
+```
+
 Most occuring artists and wordcloud
 ```{r}
 dplyr::count(df, artist, sort = T) %>% head(25)
@@ -67,6 +103,7 @@ wordcloud_songs
 ```
 
 ```{r}
+dep_var = inner_join(dep_var, popularity, by = "artist")
 dep_var = dep_var[order(-dep_var[,'Freq']),]
 dep_var %>% head(25)
 ```
@@ -78,6 +115,7 @@ dep_var %>% head(25)
 
 ```{r}
 cor(dep_var$Freq, dep_var$streams)
+cor(dep_var$Freq, dep_var$popularity, use = "na.or.complete")
 ```
 
 ```{r}
@@ -92,12 +130,12 @@ plot_data <- metrics_minmax %>%
                       names_to = "key", values_to = "value")
 # Visualise relation distribution between variables and quality
 plot_data %>% 
-  ggplot2::ggplot(aes(x = value)) + 
+  ggplot2::ggplot(aes(x = value), na.rm = T) + 
   ggplot2::geom_density(alpha = 0.6) +
   ggplot2::facet_wrap(~ key, scales = "free")
 # Visualise relation between variables and quality in boxplots
 plot_data %>%
-  ggplot2::ggplot(aes(y = value))+
+  ggplot2::ggplot(aes(y = value), na.rm = T)+
   ggplot2::geom_boxplot(alpha =0.6)+
   ggplot2::facet_wrap(~key, scales ="free")+
   ggplot2::theme(axis.title.x =element_blank(),
@@ -124,7 +162,7 @@ As a first step, the centrality measures are calculated.
 
 ## Diagnostics of regression model
 ```{r}
-regression <- lm(streams ~ degree + betweenness + closeness + eigenvector,
+regression <- lm(popularity ~ degree + betweenness + closeness + eigenvector,
                  data = metrics_minmax, na.action = na.exclude)
 ```
 
@@ -136,7 +174,7 @@ avPlots(regression)
 2. No multicollinearity
 ```{r}
 metrics_minmax %>%
-  dplyr::select(c(streams, degree, betweenness, closeness, eigenvector)) %>% 
+  dplyr::select(c(popularity, degree, betweenness, closeness, eigenvector)) %>% 
   stats::cor(use = "na.or.complete") %>% 
   corrplot::corrplot.mixed(upper = "circle",
                  lower = "number",
@@ -178,7 +216,7 @@ Because there is a significant multicollinearity, which can be explained theoret
 no_nas <- na.omit(metrics_minmax)
 # Separate the independent variables and the dependent variable
 plm_x <- as.matrix(no_nas[, c("degree", "betweenness", "eigenvector", "closeness")])
-plm_y <- no_nas$streams
+plm_y <- no_nas$popularity
 
 # Perform penalized linear regression using glmnet
 penalized_regression <- glmnet(plm_x, plm_y)
@@ -235,9 +273,9 @@ legend("topright", legend = c("Original", "Predicted"),
 
 
 # Plot
-ggplot2::ggplot(data = as.data.frame(cbind(plm_y, plm_y_pred)),
-                mapping = aes(x = plm_y, y = s0, col = s0)) +
-  ggplot2::geom_point() +
+ggplot2::ggplot() +
+  ggplot2::geom_point(data = as.data.frame(cbind(plm_y, plm_y_pred)),
+                mapping = aes(x = plm_y, y = s0, col = "royalblue4")) +
   ggplot2::geom_smooth(method = "lm", se = F, col = "red")
 #plot(metrics_minmax$streams, plm_y_pred)
 #abline(metrics_minmax$streams, plm_y_pred)
@@ -257,12 +295,12 @@ cor(metrics$eigenvector, metrics$gs_eigenvector)
 ```{r}
 # ANOVA streams
 #stats::oneway.test(AV ~ Gruppe, data = Daten)
-stats::oneway.test(streams ~ genre2, data = metrics)
+stats::oneway.test(popularity ~ genre2, data = metrics)
 ```
 ```{r}
 # Separate the independent variables and the dependent variable
 gs_plm_x <- as.matrix(no_nas[, c("gs_degree", "gs_betweenness", "gs_eigenvector", "gs_closeness")])
-gs_plm_y <- no_nas$streams
+gs_plm_y <- no_nas$popularity
 
 # Perform penalized linear regression using glmnet
 gs_penalized_regression <- glmnet(gs_plm_x, gs_plm_y)
