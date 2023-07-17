@@ -106,6 +106,8 @@ wordcloud_songs
 
 ```{r}
 dep_var = inner_join(dep_var, popularity, by = "artist")
+dep_var = inner_join(dep_var, genres, by = "artist")
+dep_var = dep_var %>% select(-genre3)
 dep_var = dep_var[order(-dep_var[,'Freq']),]
 dep_var %>% head(25)
 ```
@@ -125,9 +127,10 @@ dep_var = dep_var[order(-dep_var[,'output']),]
 dep_var %>% head(25)
 ```
 
-
+Distribution of Genres
 ```{r}
-
+genre_freq <- as.data.frame(table(genres$Genre))
+genre_freq[order(-genre_freq[,'Freq']),] %>% head(25)
 ```
 
 ```{r}
