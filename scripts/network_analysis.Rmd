@@ -133,6 +133,12 @@ genre_freq <- as.data.frame(table(genres$Genre))
 genre_freq[order(-genre_freq[,'Freq']),] %>% head(25)
 ```
 
+Distribution of meta Genres
+```{r}
+genre_freq <- as.data.frame(table(genres$genre2))
+genre_freq[order(-genre_freq[,'Freq']),] %>% head(25)
+```
+
 ```{r}
 # Create plot_data
 plot_data <- metrics_minmax %>% 
