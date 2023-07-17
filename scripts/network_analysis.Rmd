@@ -6,9 +6,11 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-#library(here)
-#source(here::here("scripts", "preparation.R"))
+knitr::opts_chunk$set(echo = FALSE)
+```
+```{r setup, include=FALSE, eval = F}
+library(here)
+source(here::here("scripts", "preparation.R"))
 ```
 
 # Exploratory Data Analysis
@@ -121,6 +123,11 @@ cor(dep_var$Freq, dep_var$popularity, use = "na.or.complete")
 ```{r}
 dep_var = dep_var[order(-dep_var[,'output']),]
 dep_var %>% head(25)
+```
+
+
+```{r}
+
 ```
 
 ```{r}
