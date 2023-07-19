@@ -232,8 +232,60 @@ plot(regression, 4)
 
 ## Penalized model
 Because there is a significant multicollinearity, which can be explained theoretically, a penalized linear regression model with an elastic net is applied.
+
+### according to [David Dalpiaz](https://daviddalpiaz.github.io/r4sl/elastic-net.html)
 ```{r}
-no_nas <- na.omit(metrics_minmax)
+set.seed(42)
+# set up 10 fold CV
+cv_10 = trainControl(method = "cv", number = 10)
+# fit the elastic net
+pop_elnet = train(
+  popularity ~ degree + betweenness + eigenvector, data = no_nas,
+  method = "glmnet",
+  trControl = cv_10,
+  tuneLength = 10
+)
+# retrieve best parameters
+get_best_result = function(caret_fit) {
+  best = which(rownames(caret_fit$results) == rownames(caret_fit$bestTune))
+  best_result = caret_fit$results[best, ]
+  rownames(best_result) = NULL
+  best_result
+}
+
+get_best_result(pop_elnet)
+```
+
+```{r}
+# visualise elnet
+pop_elnet_results <- as.data.frame(pop_elnet$results)
+for (i in length(unique(pop_elnet_results$alpha))) {
+  unique(pop_elnet_results$alpha)[1]
+}
+plot(pop_elnet_results$alpha, pop_elnet_results$RMSE)
+plot(pop_elnet_results$lambda, pop_elnet_results$RMSE)
+```
+
+```{r}
+X = model.matrix(popularity ~ degree + betweenness + eigenvector, data = no_nas)[, -1]
+y = no_nas$popularity
+
+fit_enr_cv = cv.glmnet(X, y, alpha = 0.1)
+sqrt(fit_enr_cv$cvm[fit_enr_cv$lambda == fit_enr_cv$lambda.min]) # CV-RMSE minimum
+
+```
+
+```{r}
+sum(coef(fit_enr_cv) != 0)
+sum(coef(fit_enr_cv) == 0)
+
+coef(fit_enr_cv)
+fit_enr_cv$index
+```
+
+### according to ChatGPT
+```{r}
+no_nas <- na.omit(metrics_minmax %>% select(-c(closeness, gs_closeness)))
 # Separate the independent variables and the dependent variable
 plm_x <- as.matrix(no_nas[, c("degree", "betweenness", "eigenvector", "closeness")])
 plm_y <- no_nas$popularity
