@@ -259,11 +259,26 @@ get_best_result(pop_elnet)
 ```{r}
 # visualise elnet
 pop_elnet_results <- as.data.frame(pop_elnet$results)
-for (i in length(unique(pop_elnet_results$alpha))) {
-  unique(pop_elnet_results$alpha)[1]
-}
-plot(pop_elnet_results$alpha, pop_elnet_results$RMSE)
+# lambda_graphs = list()
+# for (i in length(unique(pop_elnet_results$alpha))) {
+#   label = str_c("alpha", " = ", unique(pop_elnet_results$alpha)[i])
+#   temp <- pop_elnet_results %>% filter(alpha == unique(pop_elnet_results$alpha)[i])
+#   lambda_graphs = rbind(lambda_graphs, temp)
+# }
+pop_elnet_results %>% ggplot(aes(x = alpha, y = RMSE))
+
 plot(pop_elnet_results$lambda, pop_elnet_results$RMSE)
+
+# lambda graph
+plot(pop_elnet_results$alpha, pop_elnet_results$RMSE, pch = 16, col = z)
+# Connect the dots based on lambda variable
+for (i in 1:(length(pop_elnet_results$alpha) - 1)) {
+  if (pop_elnet_results$lambda[i] == 1) {
+    lines(pop_elnet_results$alpha[i:(i+1)], pop_elnet_results$RMSE[i:(i+1)], col = "red")
+  } else {
+    lines(pop_elnet_results$alpha[i:(i+1)], pop_elnet_results$RMSE[i:(i+1)], col = "blue")
+  }
+}
 ```
 
 ```{r}
