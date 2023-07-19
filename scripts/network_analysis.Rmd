@@ -145,11 +145,13 @@ plot_data <- metrics_minmax %>%
   tidyr::pivot_longer(cols = -c(artist, Genre, genre2, genre3),
                       names_to = "key", values_to = "value")
 # Visualise relation distribution between variables and quality
+par(family = "serif")
 plot_data %>% 
   ggplot2::ggplot(aes(x = value), na.rm = T) + 
   ggplot2::geom_density(alpha = 0.6) +
   ggplot2::facet_wrap(~ key, scales = "free")
 # Visualise relation between variables and quality in boxplots
+par(family = "serif")
 plot_data %>%
   ggplot2::ggplot(aes(y = value), na.rm = T)+
   ggplot2::geom_boxplot(alpha =0.6)+
@@ -185,14 +187,16 @@ regression <- lm(popularity ~ degree + betweenness + closeness + eigenvector,
 Diagnostics
 1. Linearity
 ```{r}
+par(family = "serif")
 avPlots(regression)
 ```
 2. No multicollinearity
 ```{r}
+par(family = "serif")
 metrics_minmax %>%
-  dplyr::select(c(popularity, degree, betweenness, closeness, eigenvector)) %>% 
+  dplyr::select(c(popularity, degree, betweenness, eigenvector)) %>% 
   stats::cor(use = "na.or.complete") %>% 
-  corrplot::corrplot.mixed(upper = "circle",
+  corrplot::corrplot.mixed(upper = "color",
                  lower = "number",
                  tl.pos = "lt",
                  tl.col = "black",
