@@ -261,24 +261,50 @@ get_best_result(pop_elnet)
 pop_elnet_results <- as.data.frame(pop_elnet$results)
 # lambda_graphs = list()
 # for (i in length(unique(pop_elnet_results$alpha))) {
-#   label = str_c("alpha", " = ", unique(pop_elnet_results$alpha)[i])
 #   temp <- pop_elnet_results %>% filter(alpha == unique(pop_elnet_results$alpha)[i])
-#   lambda_graphs = rbind(lambda_graphs, temp)
+#   temp %>% ggplot(aes(x = lambda, y = RMSE)) + geom_line()
+#   #label = str_c("alpha", " = ", unique(pop_elnet_results$alpha)[i])
 # }
-pop_elnet_results %>% ggplot(aes(x = alpha, y = RMSE))
-
-plot(pop_elnet_results$lambda, pop_elnet_results$RMSE)
+# pop_elnet_results %>% ggplot(aes(x = lambda, y = RMSE)) + geom_line()
+# temp <- pop_elnet_results %>% filter(alpha == unique(pop_elnet_results$alpha)[1])
+# temp %>% ggplot(aes(x = lambda, y = RMSE)) + geom_line()
+# plot(pop_elnet_results$lambda, pop_elnet_results$RMSE)
 
 # lambda graph
-plot(pop_elnet_results$alpha, pop_elnet_results$RMSE, pch = 16, col = z)
-# Connect the dots based on lambda variable
-for (i in 1:(length(pop_elnet_results$alpha) - 1)) {
-  if (pop_elnet_results$lambda[i] == 1) {
-    lines(pop_elnet_results$alpha[i:(i+1)], pop_elnet_results$RMSE[i:(i+1)], col = "red")
-  } else {
-    lines(pop_elnet_results$alpha[i:(i+1)], pop_elnet_results$RMSE[i:(i+1)], col = "blue")
-  }
-}
+pop_elnet_results %>% ggplot(aes(x = alpha, y = RMSE, col = lambda)) + geom_point() +
+    theme(axis.text = element_text(color="black", size=12, family="serif"),
+        axis.text.x = element_text(color="black", size=12, family="serif"),
+        axis.ticks.x = element_line(),
+        axis.ticks.y = element_line(),
+        axis.line.x = element_line(size=0.5, color="grey"),
+        axis.line.y = element_line(size=0.5, color="grey"),
+        panel.grid = element_line(color = "honeydew2",
+                                  size = 0.5,
+                                  linetype = 1),
+        panel.background = element_rect(fill="white"),
+        plot.margin = margin(10,10,10,10),
+        plot.title = element_text(color="black", size=16, family="serif"),
+        plot.subtitle = element_text(color="grey26", size=14, family="serif"),
+        legend.text = element_text(color="black", size=12, family="serif"),
+        text = element_text(color="black", size=14, family="serif")
+  )
+pop_elnet_results %>% ggplot(aes(x = lambda, y = RMSE, col = alpha)) + geom_point() +
+    theme(axis.text = element_text(color="black", size=12, family="serif"),
+        axis.text.x = element_text(color="black", size=12, family="serif"),
+        axis.ticks.x = element_line(),
+        axis.ticks.y = element_line(),
+        axis.line.x = element_line(size=0.5, color="grey"),
+        axis.line.y = element_line(size=0.5, color="grey"),
+        panel.grid = element_line(color = "honeydew2",
+                                  size = 0.5,
+                                  linetype = 1),
+        panel.background = element_rect(fill="white"),
+        plot.margin = margin(10,10,10,10),
+        plot.title = element_text(color="black", size=16, family="serif"),
+        plot.subtitle = element_text(color="grey26", size=14, family="serif"),
+        legend.text = element_text(color="black", size=12, family="serif"),
+        text = element_text(color="black", size=14, family="serif")
+  )
 ```
 
 ```{r}
@@ -296,6 +322,17 @@ sum(coef(fit_enr_cv) == 0)
 
 coef(fit_enr_cv)
 fit_enr_cv$index
+
+# explore predictions
+enr_preds <- predict(fit_enr_cv, newx = X)
+enr_preds <- cbind(enr_preds, y)
+enr_preds <- as.data.frame(enr_preds)
+colnames(enr_preds)[1] <- "preds"
+colnames(enr_preds)[2] <- "pop"
+enr_preds %>%
+  ggplot(aes(x = pop, y = preds)) +
+  geom_point() +
+  geom_abline(col = "red", size = 1)
 ```
 
 ### according to ChatGPT
