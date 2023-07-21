@@ -236,15 +236,6 @@ metrics$eigenvector[metrics$eigenvector == 0] <- 0.0001
 metrics$gs_degree[metrics$gs_degree == 0] <- 0.0001
 metrics$gs_betweenness[metrics$gs_betweenness == 0] <- 0.0001
 
-# standardize metrics
-metrics_stand <- metrics
-metrics_stand$streams <- scale(metrics$streams)
-metrics_stand$popularity <- scale(metrics$popularity)
-metrics_stand$degree <- scale(metrics$degree)
-metrics_stand$closeness <- scale(metrics$closeness)
-metrics_stand$betweenness <- scale(metrics$betweenness)
-metrics_stand$eigenvector <- scale(metrics$eigenvector)
-
 # boxcox metrics
 #source(here::here("scripts", "boxcox_function.R"))
 #metrics_boxcox = metrics
@@ -268,9 +259,22 @@ metrics_log$gs_closeness <- log(metrics$gs_closeness)
 metrics_log$gs_betweenness <- log(metrics_log$gs_betweenness)
 metrics_log$gs_eigenvector <- log(metrics$gs_eigenvector)
 
+# standardized metrics
+metrics_scale = metrics
+metrics_scale$streams <- scale(metrics$streams)
+metrics_scale$popularity <- scale(metrics$popularity)
+metrics_scale$degree <- scale(metrics$degree)
+metrics_scale$closeness <- scale(metrics$closeness)
+metrics_scale$betweenness <- scale(metrics_scale$betweenness)
+metrics_scale$eigenvector <- scale(metrics$eigenvector)
+metrics_scale$gs_degree <- scale(metrics$gs_degree)
+metrics_scale$gs_closeness <- scale(metrics$gs_closeness)
+metrics_scale$gs_betweenness <- scale(metrics_scale$gs_betweenness)
+metrics_scale$gs_eigenvector <- scale(metrics$gs_eigenvector)
+
 # min max metrics
 source(here::here("scripts", "minmax_function.R"))
-metrics_minmax <- metrics_log
+metrics_minmax <- metrics_scale
 metrics_minmax$streams <- min_max_normalize(metrics_log$streams)
 metrics_minmax$popularity <- min_max_normalize(metrics$popularity)
 metrics_minmax$degree <- min_max_normalize(metrics_log$degree)
