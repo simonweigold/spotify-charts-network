@@ -180,7 +180,7 @@ As a first step, the centrality measures are calculated.
 
 ## Diagnostics of regression model
 ```{r}
-regression <- lm(popularity ~ degree + betweenness + closeness + eigenvector,
+regression <- lm(popularity ~ degree + betweenness + eigenvector,
                  data = metrics_minmax, na.action = na.exclude)
 ```
 
