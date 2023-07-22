@@ -227,6 +227,11 @@ for (i in 1:length(subgraphs)) {
 
 metrics <- inner_join(metrics, gs_result_df, by = "artist")
 
+# collaboration only within genre?
+metrics$collaboration <- "multiple genres"
+metrics$collaboration[metrics$degree == metrics$gs_degree] = "only same genre"
+metrics$collaboration[metrics$degree == 0] = "no collaboration"
+
 
 
 # Metrics DFs -------------------------------------------------------------
