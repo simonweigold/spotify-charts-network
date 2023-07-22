@@ -43,7 +43,7 @@ stats::oneway.test(popularity ~ collaboration, data = metrics)
 anova_avgs %>% 
   #mutate(collaboration = as.factor(collaboration)) %>% 
   ggplot(aes(x = collaboration, y = avg_popularity)) +
-  geom_col(colour = "royalblue", fill = "royalblue") +
+  geom_col(colour = "royalblue", fill = "royalblue", linewidth = 0.2) +
   xlab("") +
   ylab("Popularity mean") +
   theme(axis.text = element_text(color="black", size=12, family="serif"),
