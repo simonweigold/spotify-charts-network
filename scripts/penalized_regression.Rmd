@@ -168,23 +168,6 @@ ggplot2::ggplot() +
 
 
 
-# Hypothesis 2
-
-```{r}
-cor(metrics$degree, metrics$gs_degree)
-cor(metrics$betweenness, metrics$gs_betweenness)
-cor(metrics$closeness, metrics$gs_closeness, use = "na.or.complete")
-cor(metrics$eigenvector, metrics$gs_eigenvector)
-```
-
-```{r}
-# ANOVA streams
-#stats::oneway.test(AV ~ Gruppe, data = Daten)
-stats::oneway.test(popularity ~ genre2, data = metrics)
-```
-
-
-
 
 
 
