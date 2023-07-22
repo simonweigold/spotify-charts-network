@@ -1,0 +1,68 @@
+---
+title: "anova"
+author: "Simon Weigold"
+date: "2023-07-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r setup, include=FALSE, eval = F}
+library(here)
+source(here::here("scripts", "preparation.R"))
+```
+
+```{r}
+anova_avgs <- metrics %>% 
+  group_by(collaboration) %>% 
+  summarise(avg_streams = mean(streams),
+            avg_popularity = mean(popularity, na.rm = T),
+            avg_degree = mean(degree),
+            avg_betweenness = mean(betweenness),
+            avg_closeness = mean(closeness, na.rm = T),
+            avg_eigenvector = mean(eigenvector))
+```
+
+# Hypothesis 2
+
+```{r}
+# cor(metrics$degree, metrics$gs_degree)
+# cor(metrics$betweenness, metrics$gs_betweenness)
+# cor(metrics$closeness, metrics$gs_closeness, use = "na.or.complete")
+# cor(metrics$eigenvector, metrics$gs_eigenvector)
+```
+
+```{r}
+# ANOVA streams
+#stats::oneway.test(AV ~ Gruppe, data = Daten)
+stats::oneway.test(popularity ~ collaboration, data = metrics)
+```
+
+```{r}
+anova_avgs %>% 
+  #mutate(collaboration = as.factor(collaboration)) %>% 
+  ggplot(aes(x = collaboration, y = avg_popularity)) +
+  geom_col(colour = "royalblue", fill = "royalblue") +
+  xlab("") +
+  ylab("Popularity mean") +
+  theme(axis.text = element_text(color="black", size=12, family="serif"),
+        axis.text.x = element_text(color="black", size=12, family="serif"),
+        axis.ticks.x = element_line(),
+        axis.ticks.y = element_line(),
+        axis.line.x = element_line(size=0.5, color="grey"),
+        axis.line.y = element_line(size=0.5, color="grey"),
+        panel.grid = element_line(color = "honeydew2",
+                                  size = 0.5,
+                                  linetype = 1),
+        panel.background = element_rect(fill="white"),
+        plot.margin = margin(10,10,10,10),
+        plot.title = element_text(color="black", size=16, family="serif"),
+        plot.subtitle = element_text(color="grey26", size=14, family="serif"),
+        legend.text = element_text(color="black", size=12, family="serif"),
+        text = element_text(color="black", size=14, family="serif")
+        )
+```
+
+
+
