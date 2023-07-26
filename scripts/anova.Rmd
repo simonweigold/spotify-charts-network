@@ -36,22 +36,57 @@ anova_avgs <- metrics %>%
 ```{r}
 # ANOVA streams
 #stats::oneway.test(AV ~ Gruppe, data = Daten)
-stats::oneway.test(popularity ~ collaboration, data = metrics)
+#stats::oneway.test(popularity ~ collaboration, data = metrics)
+```
+
+Levene Test for variance homogeneity
+https://bjoernwalther.com/levene-test-in-r-berechnen-und-interpretieren/
+```{r}
+leveneTest(aov)
+```
+Shapiro-Wilk test for normality of residuals
+https://bjoernwalther.com/shapiro-wilk-test-in-r-rechnen/
+```{r}
+shapiro.test(metrics$popularity)
+```
+
+
+One-way ANOVA
+```{r}
+aov <- aov(popularity ~ collaboration, data = metrics)
+summary(aov)
+```
+
+Homoscedasticity
+```{r}
+par(mfrow = c(2,2))
+plot(aov)
+par(mfrow = c(1,1))
+```
+
+post-hoc test
+```{r}
+tukey.two.way <- TukeyHSD(aov)
+tukey.two.way
+```
+```{r}
+
+plot(TukeyHSD(aov), las = 1)
 ```
 
 ```{r}
-anova_avgs %>% 
-  #mutate(collaboration = as.factor(collaboration)) %>% 
-  ggplot(aes(x = collaboration, y = avg_popularity)) +
-  geom_col(colour = "royalblue", fill = "royalblue", linewidth = 0.2) +
+ggplot(metrics, aes(x = collaboration, y = popularity, group = collaboration)) +
+  geom_point(cex = 1.5, pch = 1.0, position = position_jitter(w = 0.1, h = 0),
+             colour = "royalblue", alpha = 0.75) +
   xlab("") +
-  ylab("Popularity mean") +
+  #stat_summary(fun.data = 'mean_se', geom = 'errorbar', width = 0.2) +
+  stat_summary(fun.data = 'mean_se', geom = 'point', colour = "black", shape = 18, size = 2) +
   theme(axis.text = element_text(color="black", size=12, family="serif"),
         axis.text.x = element_text(color="black", size=12, family="serif"),
         axis.ticks.x = element_line(),
         axis.ticks.y = element_line(),
-        axis.line.x = element_line(size=0.5, color="grey"),
-        axis.line.y = element_line(size=0.5, color="grey"),
+        axis.line.x = element_line(linewidth=0.5, color="grey"),
+        axis.line.y = element_line(linewidth=0.5, color="grey"),
         panel.grid = element_line(color = "honeydew2",
                                   size = 0.5,
                                   linetype = 1),
@@ -61,8 +96,7 @@ anova_avgs %>%
         plot.subtitle = element_text(color="grey26", size=14, family="serif"),
         legend.text = element_text(color="black", size=12, family="serif"),
         text = element_text(color="black", size=14, family="serif")
-        )
+  )
 ```
-
 
 
