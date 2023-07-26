@@ -25,6 +25,9 @@ library(wordcloud2)
 library(jsonlite)
 library(webshot)
 library(caret)
+library(ggpubr)
+library(broom)
+library(AICcmodavg)
 
 
 
