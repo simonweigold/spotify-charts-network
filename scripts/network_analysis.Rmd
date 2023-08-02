@@ -84,6 +84,76 @@ ggsave(freq_popularity,
 freq_popularity
 ```
 
+Network Statistics for Subgraphs etc.
+```{r}
+# create DF
+subgraph_metrics <- data.frame(c(1:9))
+# Name
+subgraph_metrics$subgraph <- c("Full Network", "Largest Subgraph",
+                               V(subgraphs[[1]])$genre_recoded[1],
+                               V(subgraphs[[2]])$genre_recoded[2],
+                               V(subgraphs[[3]])$genre_recoded[3],
+                               V(subgraphs[[4]])$genre_recoded[4],
+                               V(subgraphs[[5]])$genre_recoded[5],
+                               V(subgraphs[[6]])$genre_recoded[6],
+                               V(subgraphs[[7]])$genre_recoded[7])
+# Size
+subgraph_metrics$size <- c(gsize(graph_artists),
+                           gsize(largest_subgraph),
+                           gsize(subgraphs[[1]]),
+                           gsize(subgraphs[[2]]),
+                           gsize(subgraphs[[3]]),
+                           gsize(subgraphs[[4]]),
+                           gsize(subgraphs[[5]]),
+                           gsize(subgraphs[[6]]),
+                           gsize(subgraphs[[7]])
+                           )
+# Density
+subgraph_metrics$density <- c(edge_density(graph_artists),
+                              edge_density(largest_subgraph),
+                              edge_density(subgraphs[[1]]),
+                              edge_density(subgraphs[[2]]),
+                              edge_density(subgraphs[[3]]),
+                              edge_density(subgraphs[[4]]),
+                              edge_density(subgraphs[[5]]),
+                              edge_density(subgraphs[[6]]),
+                              edge_density(subgraphs[[7]])
+                              )
+# Components
+subgraph_metrics$components <- c(count_components(graph_artists),
+                           count_components(largest_subgraph),
+                           count_components(subgraphs[[1]]),
+                           count_components(subgraphs[[2]]),
+                           count_components(subgraphs[[3]]),
+                           count_components(subgraphs[[4]]),
+                           count_components(subgraphs[[5]]),
+                           count_components(subgraphs[[6]]),
+                           count_components(subgraphs[[7]])
+                           )
+# Diameter
+subgraph_metrics$diameter <- c(diameter(graph_artists, directed = F),
+                           diameter(largest_subgraph, directed = F),
+                           diameter(subgraphs[[1]], directed = F),
+                           diameter(subgraphs[[2]], directed = F),
+                           diameter(subgraphs[[3]], directed = F),
+                           diameter(subgraphs[[4]], directed = F),
+                           diameter(subgraphs[[5]], directed = F),
+                           diameter(subgraphs[[6]], directed = F),
+                           diameter(subgraphs[[7]], directed = F)
+                           )
+# Clustering
+subgraph_metrics$transitivity <- c(transitivity(graph_artists),
+                           transitivity(largest_subgraph),
+                           transitivity(subgraphs[[1]]),
+                           transitivity(subgraphs[[2]]),
+                           transitivity(subgraphs[[3]]),
+                           transitivity(subgraphs[[4]]),
+                           transitivity(subgraphs[[5]]),
+                           transitivity(subgraphs[[6]]),
+                           transitivity(subgraphs[[7]])
+                           )
+```
+
 Most occuring artists and wordcloud
 ```{r}
 dplyr::count(df, artist, sort = T) %>% head(25)
