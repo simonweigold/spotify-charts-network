@@ -152,6 +152,7 @@ subgraph_metrics$transitivity <- c(transitivity(graph_artists),
                            transitivity(subgraphs[[6]]),
                            transitivity(subgraphs[[7]])
                            )
+write.csv(subgraph_metrics, here::here("data", "subgraph_metrics.csv"))
 ```
 
 Most occuring artists and wordcloud
