@@ -150,7 +150,8 @@ plot(fit_enr_cv, xvar = "alpha")
 
 
 # Plot the predicted values and the original values
-plot(y, type = "o", col = "blue", ylim = range(c(y, regular_reg)), 
+par(family = "serif")
+plot(y, type = "o", col = "blue", ylim = range(c(y, enr_preds$pop)), 
      xlab = "Observation", ylab = "Value", main = "Predicted vs Original Values")
 lines(enr_preds$preds, type = "o", col = "red")
 legend("topright", legend = c("Original", "Predicted"), 
