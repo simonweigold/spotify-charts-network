@@ -154,7 +154,15 @@ ggsave(lambda,
        dpi = 600
 )
 
-
+# Predicted vs Original Values
+png("imgs/predicted-vs-original.png", width = 1080, height = 720, units = "px", pointsize = 32)
+par(family = "serif")
+plot(y, type = "o", col = "blue", ylim = range(c(y, enr_preds$pop)), 
+     xlab = "Observation", ylab = "Value", main = "")
+lines(enr_preds$preds, type = "o", col = "red")
+legend("topright", legend = c("Original", "Predicted"), 
+       col = c("blue", "red"), pch = c(1, 1))
+dev.off()
 
 # ANOVA -------------------------------------------------------------------
 
