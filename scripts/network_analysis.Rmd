@@ -90,23 +90,23 @@ Network Statistics for Subgraphs etc.
 subgraph_metrics <- data.frame(c(1:9))
 # Name
 subgraph_metrics$subgraph <- c("Full Network", "Largest Subgraph",
-                               V(subgraphs[[1]])$genre_recoded[1],
-                               V(subgraphs[[2]])$genre_recoded[2],
-                               V(subgraphs[[3]])$genre_recoded[3],
-                               V(subgraphs[[4]])$genre_recoded[4],
-                               V(subgraphs[[5]])$genre_recoded[5],
-                               V(subgraphs[[6]])$genre_recoded[6],
-                               V(subgraphs[[7]])$genre_recoded[7])
+                               V(subgraphs[[1]])$genre_recoded[1],#unknown
+                               V(subgraphs[[2]])$genre_recoded[1],#rap
+                               V(subgraphs[[3]])$genre_recoded[1],#pop
+                               V(subgraphs[[4]])$genre_recoded[1],#other
+                               V(subgraphs[[5]])$genre_recoded[1],#hip hop
+                               V(subgraphs[[6]])$genre_recoded[1],#house
+                               V(subgraphs[[7]])$genre_recoded[1])#rock
 # Size
-subgraph_metrics$size <- c(gsize(graph_artists),
-                           gsize(largest_subgraph),
-                           gsize(subgraphs[[1]]),
-                           gsize(subgraphs[[2]]),
-                           gsize(subgraphs[[3]]),
-                           gsize(subgraphs[[4]]),
-                           gsize(subgraphs[[5]]),
-                           gsize(subgraphs[[6]]),
-                           gsize(subgraphs[[7]])
+subgraph_metrics$size <- c(vcount(graph_artists),
+                           vcount(largest_subgraph),
+                           vcount(subgraphs[[1]]),
+                           vcount(subgraphs[[2]]),
+                           vcount(subgraphs[[3]]),
+                           vcount(subgraphs[[4]]),
+                           vcount(subgraphs[[5]]),
+                           vcount(subgraphs[[6]]),
+                           vcount(subgraphs[[7]])
                            )
 # Density
 subgraph_metrics$density <- c(edge_density(graph_artists),
