@@ -24,6 +24,9 @@ betweenness(largest_subgraph)[order(-betweenness(largest_subgraph))] %>% head(25
 eigen_centrality(graph_artists)$vector[order(-eigen_centrality(graph_artists)$vector)] %>% head(25)
 eigen_centrality(largest_subgraph)$vector[order(-eigen_centrality(largest_subgraph)$vector)] %>% head(25)
 
+# average number of connections
+mean(metrics$degree)
+
 # correlation
 metrics %>%
   select(c(streams, degree, betweenness, closeness, eigenvector)) %>% 
