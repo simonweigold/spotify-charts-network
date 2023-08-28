@@ -70,7 +70,7 @@ tukey.two.way <- TukeyHSD(aov)
 tukey.two.way
 ```
 ```{r}
-
+par(family = "serif")
 plot(TukeyHSD(aov), las = 1)
 ```
 
