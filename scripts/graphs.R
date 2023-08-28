@@ -197,3 +197,16 @@ ggsave(anova_means,
        dpi = 600
 )
 
+# Homoscedasticity plots
+png("imgs/anova-homoscedasticity.png", width = 1080, height = 960, units = "px", pointsize = 32)
+par(family = "serif")
+par(mfrow = c(2,2))
+plot(aov)
+par(mfrow = c(1,1))
+dev.off()
+
+# Confidence Intervals
+png("imgs/anova-confidence.png", width = 1080, height = 960, units = "px", pointsize = 32)
+par(family = "serif")
+plot(TukeyHSD(aov), las = 1, main = "")
+dev.off()
